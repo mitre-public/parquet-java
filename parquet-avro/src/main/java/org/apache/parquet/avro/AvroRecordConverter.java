@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -141,6 +142,15 @@ class AvroRecordConverter<T> extends AvroConverters.AvroGroupConverter {
       };
 
       Class<?> fieldClass = fields.get(avroField.name());
+      if ((null != fieldClass)
+          &&
+          /* Explicitly exclude ByteBuffers as parquet directly encodes them as byte[]s in the output data model - but the field class
+           * for ByteBuffer is abstract - so if we don't exclude them here all ByteBuffer fields are reflectively populated with byte[]s */
+          ((Modifier.isAbstract(fieldClass.getModifiers()) && !fieldClass.isAssignableFrom(ByteBuffer.class))
+              || Modifier.isInterface(fieldClass.getModifiers())
+              || fieldClass.equals(Object.class))) {
+        fieldClass = null;
+      }
       converters[parquetFieldIndex] =
           newConverter(nonNullSchema, parquetField, this.model, fieldClass, container);
 

@@ -20,7 +20,56 @@
 Parquet Java (formerly Parquet MR) [![Build Status](https://github.com/apache/parquet-java/workflows/Test/badge.svg)](https://github.com/apache/parquet-java/actions)
 ======
 
-This repository contains a Java implementation of [Apache Parquet](https://parquet.apache.org/)
+This repository contains a **modified** Java implementation of [Apache Parquet](https://parquet.apache.org/). The changes
+in this version allow for the serialization of Java generic supertypes in a collection, without the correct type
+being lost on read.
+
+See below for an example of this fix:
+```java
+class AbstractRecord<X> { TreeSet<X> recordSet; }
+
+/**
+ * The template type will be lost on write-out and deserialization will fail without this change
+ * @param <Y> the concrete template type stored in {@link AbstractRecord#recordSet}
+ */
+class OutputRecord<Y> extends AbstractRecord<Y> {}
+```
+
+### Releasing new versions
+
+- Update main with the latest Parquet-java changes and rebase the forked changes
+- Ensure you have the upstream parquet fork as a git remote and fetch tags
+  ```shell
+  git remote add fork-source https://github.com/apache/parquet-java
+  git fetch --tags fork-source
+  ```
+- Check out a new release branch from the relevant avro release tag
+  `git checkout -b release/1.0.0-1.15.0 apache-parquet-1.15.0`
+- Apply the most recent fork change to that branch
+  `git cherry-pick <ref-from-main>`
+- Set the new project version. **If** adjusting the fork itself bump the base version (1.0.0)
+  `mvn versions:set 1.0.0-1.15.0`
+- Deploy the final jars from `lang/java/avro`
+  `mvn deploy -DskipTests -DaltDeploymentRepository=repository-id::repository-url`
+- Push the release branch to remote
+
+---
+
+<p align=center><ins><b>NOTICE</b></ins></p>
+
+<p>This work was produced for the U.S. Government under Contract 693KA8-22-C-00001 and is subject to Federal Aviation Administration Acquisition Management System Clause 3.5-13, Rights In Data-General (Oct. 2014), Alt. III and Alt. IV (Oct. 2009).</p>
+
+<p>The contents of this document reflect the views of the author and The MITRE Corporation and do not necessarily reflect the views of the Federal Aviation Administration (FAA) or the Department of Transportation (DOT). Neither the FAA nor the DOT makes any warranty or guarantee, expressed or implied, concerning the content or accuracy of these views.</p>
+
+<p>For further information, please contact The MITRE Corporation, Contracts Management Office, 7515 Colshire Drive, McLean, VA 22102-7539, (703) 983-6000.</p>
+
+<p align=center><ins><b>&copy; 2024 The MITRE Corporation. All Rights Reserved.</b></ins></p>
+
+---
+
+<p align=center>Approved for Public Release; Distribution Unlimited. Public Release Case Number 24-3517</p>
+
+---
 
 Apache Parquet is an open source, column-oriented data file format
 designed for efficient data storage and retrieval. It provides high
