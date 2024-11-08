@@ -17,10 +17,10 @@
   <description>Parquet is a columnar storage format that supports nested data. This provides the java implementation.</description>
 
   <scm>
-    <connection>scm:git:git@github.com:apache/parquet-mr.git</connection>
-    <url>scm:git:git@github.com:apache/parquet-mr.git</url>
-    <developerConnection>scm:git:git@github.com:apache/parquet-mr.git</developerConnection>
-    <tag>apache-parquet-1.15.0-rc2</tag>
+    <connection>scm:git:https://github.com/mitre-public/parquet-java</connection>
+    <developerConnection>scm:git:https://github.com/mitre-public/parquet-java</developerConnection>
+    <url>scm:git:https://github.com/mitre-public/parquet-java</url>
+    <tag>HEAD</tag>
   </scm>
 
   <licenses>
