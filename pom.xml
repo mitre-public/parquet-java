@@ -9,7 +9,7 @@
 
   <groupId>org.apache.parquet</groupId>
   <artifactId>parquet</artifactId>
-  <version>1.15.0</version>
+  <version>1.0.0-1.15.0</version>
   <packaging>pom</packaging>
 
   <name>Apache Parquet Java</name>
@@ -542,53 +542,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>com.github.siom79.japicmp</groupId>
-        <artifactId>japicmp-maven-plugin</artifactId>
-        <version>${japicmp.version}</version>
-        <configuration>
-          <parameter>
-            <oldVersionPattern>${previous.version}</oldVersionPattern>
-            <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
-            <onlyModified>true</onlyModified>
-            <ignoreMissingClassesByRegularExpressions>
-              <ignoreMissingClassesByRegularExpression>${shade.prefix}.*</ignoreMissingClassesByRegularExpression>
-            </ignoreMissingClassesByRegularExpressions>
-            <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
-            <excludeModules>
-              <!-- Excluding the following modules because they are not part of the parquet public API -->
-              <excludeModule>parquet-benchmarks</excludeModule>
-              <excludeModule>parquet-cli</excludeModule>
-              <excludeModule>parquet-tools-deprecated</excludeModule>
-              <excludeModule>parquet-format-structures</excludeModule>
-
-              <!-- Excluding the following modules because bundles do not contain any java classes while they still fail the
-                compatibility check because of missing dependencies -->
-              <excludeModule>parquet-hadoop-bundle</excludeModule>
-              <excludeModule>parquet-pig-bundle</excludeModule>
-            </excludeModules>
-            <excludes>
-              <exclude>${shade.prefix}</exclude>
-              <!-- Removal of a protected method in a class that's not supposed to be subclassed by third-party code -->
-              <exclude>org.apache.parquet.column.values.bytestreamsplit.ByteStreamSplitValuesReader#gatherElementDataFromStreams(byte[])</exclude>
-              <!-- Due to the removal of deprecated methods -->
-              <exclude>org.apache.parquet.arrow.schema.SchemaMapping$TypeMappingVisitor#visit(org.apache.parquet.arrow.schema.SchemaMapping$MapTypeMapping)</exclude>
-              <!-- Make static variables final -->
-              <exclude>org.apache.parquet.avro.AvroReadSupport#AVRO_REQUESTED_PROJECTION</exclude>
-              <exclude>org.apache.parquet.avro.AvroReadSupport#AVRO_DATA_SUPPLIER</exclude>
-              <exclude>org.apache.parquet.hadoop.ParquetFileReader#PARQUET_READ_PARALLELISM</exclude>
-            </excludes>
-          </parameter>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>cmp</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
