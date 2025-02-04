@@ -21,40 +21,40 @@
     <groupId>org.apache.parquet</groupId>
     <artifactId>parquet</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>1.0.0-1.13.1</version>
+    <version>1.13.1</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>parquet-jackson</artifactId>
+  <artifactId>parquet-hadoop-bundle</artifactId>
   <packaging>jar</packaging>
 
-  <name>Apache Parquet Jackson</name>
+  <name>Apache Parquet Hadoop Bundle</name>
   <url>https://parquet.apache.org</url>
+
+  <properties>
+  </properties>
 
   <dependencies>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-common</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-column</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-hadoop</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
-  <properties>
-    <shade.createSourcesJar>false</shade.createSourcesJar>
-  </properties>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -64,33 +64,27 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration combine.self="override">
+            <configuration>
               <minimizeJar>false</minimizeJar>
-              <createSourcesJar>${shade.createSourcesJar}</createSourcesJar>
-              <artifactSet>
-                <includes>
-                  <include>${jackson.groupId}:*</include>
-                </includes>
-              </artifactSet>
               <filters>
                 <filter>
-                  <artifact>${jackson.groupId}:*</artifact>
-                  <includes>
-                    <include>**</include>
-                  </includes>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/LICENSE.txt</exclude>
+                    <exclude>META-INF/NOTICE.txt</exclude>
+                  </excludes>
                 </filter>
               </filters>
-              <relocations>
-                <relocation>
-                  <pattern>${jackson.package}</pattern>
-                  <shadedPattern>${shade.prefix}.${jackson.package}</shadedPattern>
-                </relocation>
-              </relocations>
+              <artifactSet>
+                <includes>
+                  <include>org.apache.parquet:parquet-*</include>
+                </includes>
+              </artifactSet>
             </configuration>
           </execution>
         </executions>
       </plugin>
-      <!-- Skip analyzing dependencies in this module so we can depend on jackson without any code references -->
+      <!-- Skip analyzing dependencies in this module so we can depend on modules without any code references -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -107,12 +101,5 @@
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>sonatype-oss-release</id>
-      <properties>
-        <shade.createSourcesJar>true</shade.createSourcesJar>
-      </properties>
-    </profile>
-  </profiles>
+
 </project>

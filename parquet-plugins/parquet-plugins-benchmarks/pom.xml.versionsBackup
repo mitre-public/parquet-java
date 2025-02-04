@@ -16,56 +16,50 @@
   - specific language governing permissions and limitations
   - under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache.parquet</groupId>
     <artifactId>parquet</artifactId>
-    <relativePath>../pom.xml</relativePath>
-    <version>1.0.0-1.13.1</version>
+    <version>1.13.1-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>parquet-benchmarks</artifactId>
+  <artifactId>parquet-plugins-benchmarks</artifactId>
+
   <packaging>jar</packaging>
-  <name>Apache Parquet Benchmarks</name>
+  <name>Apache Parquet Plugins Benchmarks</name>
   <url>https://parquet.apache.org</url>
 
   <properties>
     <jmh.version>1.21</jmh.version>
-    <uberjar.name>parquet-benchmarks</uberjar.name>
+    <uberjar.name>parquet-plugins-benchmarks</uberjar.name>
   </properties>
 
   <dependencies>
     <dependency>
-       <groupId>org.apache.parquet</groupId>
-       <artifactId>parquet-hadoop</artifactId>
-       <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.parquet</groupId>
-      <artifactId>parquet-column</artifactId>
+      <artifactId>parquet-encoding</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.parquet</groupId>
-      <artifactId>parquet-common</artifactId>
+      <artifactId>parquet-encoding-vector</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-core</artifactId>
+      <version>${jmh.version}</version>
     </dependency>
     <dependency>
-       <groupId>org.openjdk.jmh</groupId>
-       <artifactId>jmh-core</artifactId>
-       <version>${jmh.version}</version>
-    </dependency>
-    <dependency>
-       <groupId>org.openjdk.jmh</groupId>
-        <artifactId>jmh-generator-annprocess</artifactId>
-        <version>${jmh.version}</version>
-        <scope>provided</scope>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-generator-annprocess</artifactId>
+      <version>${jmh.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -93,6 +87,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <phase>package</phase>
