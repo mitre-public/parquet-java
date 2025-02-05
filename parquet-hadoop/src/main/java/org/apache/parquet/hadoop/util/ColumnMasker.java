@@ -18,17 +18,16 @@
  */
 package org.apache.parquet.hadoop.util;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.hadoop.rewrite.ParquetRewriter;
 import org.apache.parquet.hadoop.util.CompressionConverter.TransParquetFileReader;
 import org.apache.parquet.schema.MessageType;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Deprecated
 public class ColumnMasker {
@@ -42,10 +41,16 @@ public class ColumnMasker {
    * @param maskMode Mode to mask
    * @throws IOException
    */
-  public void processBlocks(TransParquetFileReader reader, ParquetFileWriter writer, ParquetMetadata meta,
-                            MessageType schema, List<String> paths, MaskMode maskMode) throws IOException {
-    ParquetRewriter rewriter = new ParquetRewriter(
-            reader, writer, meta, schema, null, null,  paths, convertMaskMode(maskMode));
+  public void processBlocks(
+      TransParquetFileReader reader,
+      ParquetFileWriter writer,
+      ParquetMetadata meta,
+      MessageType schema,
+      List<String> paths,
+      MaskMode maskMode)
+      throws IOException {
+    ParquetRewriter rewriter =
+        new ParquetRewriter(reader, writer, meta, schema, null, null, paths, convertMaskMode(maskMode));
     rewriter.processBlocks();
   }
 
@@ -94,5 +99,4 @@ public class ColumnMasker {
       return null;
     }
   }
-
 }

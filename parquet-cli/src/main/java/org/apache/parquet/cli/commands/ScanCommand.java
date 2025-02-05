@@ -23,14 +23,13 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.parquet.cli.BaseCommand;
 import org.apache.parquet.cli.util.Expressions;
 import org.slf4j.Logger;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.List;
 
 @Parameters(commandDescription = "Scan all records from a file")
 public class ScanCommand extends BaseCommand {
@@ -39,8 +38,8 @@ public class ScanCommand extends BaseCommand {
   String sourceFile;
 
   @Parameter(
-    names = {"-c", "--column", "--columns"},
-    description = "List of columns")
+      names = {"-c", "--column", "--columns"},
+      description = "List of columns")
   List<String> columns;
 
   public ScanCommand(Logger console) {
@@ -49,9 +48,7 @@ public class ScanCommand extends BaseCommand {
 
   @Override
   public int run() throws IOException {
-    Preconditions.checkArgument(
-      sourceFile != null && !sourceFile.isEmpty(),
-      "Missing file name");
+    Preconditions.checkArgument(sourceFile != null && !sourceFile.isEmpty(), "Missing file name");
 
     Schema schema = getAvroSchema(sourceFile);
     Schema projection = Expressions.filterSchema(schema, columns);
@@ -82,10 +79,9 @@ public class ScanCommand extends BaseCommand {
   @Override
   public List<String> getExamples() {
     return Lists.newArrayList(
-      "# Scan all the records from file \"data.avro\":",
-      "data.avro",
-      "# Scan all the records from file \"data.parquet\":",
-      "data.parquet"
-    );
+        "# Scan all the records from file \"data.avro\":",
+        "data.avro",
+        "# Scan all the records from file \"data.parquet\":",
+        "data.parquet");
   }
 }

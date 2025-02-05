@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,7 +19,6 @@
 package org.apache.parquet.column.page;
 
 import java.io.IOException;
-
 import org.apache.parquet.bytes.BytesInput;
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.column.statistics.Statistics;
@@ -42,7 +41,14 @@ public interface PageWriter {
    *             {@link #writePage(BytesInput, int, int, Statistics, Encoding, Encoding, Encoding)} instead
    */
   @Deprecated
-  void writePage(BytesInput bytesInput, int valueCount, Statistics<?> statistics, Encoding rlEncoding, Encoding dlEncoding, Encoding valuesEncoding) throws IOException;
+  void writePage(
+      BytesInput bytesInput,
+      int valueCount,
+      Statistics<?> statistics,
+      Encoding rlEncoding,
+      Encoding dlEncoding,
+      Encoding valuesEncoding)
+      throws IOException;
 
   /**
    * writes a single page
@@ -55,7 +61,15 @@ public interface PageWriter {
    * @param valuesEncoding values encoding
    * @throws IOException
    */
-  void writePage(BytesInput bytesInput, int valueCount, int rowCount, Statistics<?> statistics, Encoding rlEncoding, Encoding dlEncoding, Encoding valuesEncoding) throws IOException;
+  void writePage(
+      BytesInput bytesInput,
+      int valueCount,
+      int rowCount,
+      Statistics<?> statistics,
+      Encoding rlEncoding,
+      Encoding dlEncoding,
+      Encoding valuesEncoding)
+      throws IOException;
 
   /**
    * writes a single page in the new format
@@ -70,11 +84,15 @@ public interface PageWriter {
    * @throws IOException if there is an exception while writing page data
    */
   void writePageV2(
-      int rowCount, int nullCount, int valueCount,
-      BytesInput repetitionLevels, BytesInput definitionLevels,
+      int rowCount,
+      int nullCount,
+      int valueCount,
+      BytesInput repetitionLevels,
+      BytesInput definitionLevels,
       Encoding dataEncoding,
       BytesInput data,
-      Statistics<?> statistics) throws IOException;
+      Statistics<?> statistics)
+      throws IOException;
 
   /**
    * @return the current size used in the memory buffer for that column chunk
@@ -98,5 +116,4 @@ public interface PageWriter {
    * @return a string presenting a summary of how memory is used
    */
   String memUsageString(String prefix);
-
 }

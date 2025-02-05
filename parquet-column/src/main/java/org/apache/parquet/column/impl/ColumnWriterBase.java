@@ -21,7 +21,6 @@ package org.apache.parquet.column.impl;
 import java.io.IOException;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
-
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.ColumnWriter;
 import org.apache.parquet.column.ParquetProperties;
@@ -36,7 +35,6 @@ import org.apache.parquet.io.ParquetEncodingException;
 import org.apache.parquet.io.api.Binary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.parquet.bytes.BytesInput;
 
 /**
  * Base implementation for {@link ColumnWriter} to be extended to specialize for V1 and V2 pages.
@@ -62,19 +60,15 @@ abstract class ColumnWriterBase implements ColumnWriter {
   private final BloomFilterWriter bloomFilterWriter;
   private final BloomFilter bloomFilter;
 
-  ColumnWriterBase(
-      ColumnDescriptor path,
-      PageWriter pageWriter,
-      ParquetProperties props) {
+  ColumnWriterBase(ColumnDescriptor path, PageWriter pageWriter, ParquetProperties props) {
     this(path, pageWriter, null, props);
   }
 
   ColumnWriterBase(
-    ColumnDescriptor path,
-    PageWriter pageWriter,
-    BloomFilterWriter bloomFilterWriter,
-    ParquetProperties props
-  ) {
+      ColumnDescriptor path,
+      PageWriter pageWriter,
+      BloomFilterWriter bloomFilterWriter,
+      ParquetProperties props) {
     this.path = path;
     this.pageWriter = pageWriter;
     resetStatistics();
@@ -133,8 +127,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void writeNull(int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(null, repetitionLevel, definitionLevel);
+    if (DEBUG) log(null, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     statistics.incrementNumNulls();
@@ -196,8 +189,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(double value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeDouble(value);
@@ -215,8 +207,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(float value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeFloat(value);
@@ -234,8 +225,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(Binary value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeBytes(value);
@@ -253,8 +243,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(boolean value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeBoolean(value);
@@ -271,8 +260,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(int value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeInteger(value);
@@ -290,8 +278,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   @Override
   public void write(long value, int repetitionLevel, int definitionLevel) {
-    if (DEBUG)
-      log(value, repetitionLevel, definitionLevel);
+    if (DEBUG) log(value, repetitionLevel, definitionLevel);
     repetitionLevel(repetitionLevel);
     definitionLevel(definitionLevel);
     dataColumn.writeLong(value);
@@ -307,8 +294,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
   void finalizeColumnChunk() {
     final DictionaryPage dictionaryPage = dataColumn.toDictPageAndClose();
     if (dictionaryPage != null) {
-      if (DEBUG)
-        LOG.debug("write dictionary");
+      if (DEBUG) LOG.debug("write dictionary");
       try {
         pageWriter.writeDictionaryPage(dictionaryPage);
       } catch (IOException e) {
@@ -362,11 +348,19 @@ abstract class ColumnWriterBase implements ColumnWriter {
    */
   String memUsageString(String indent) {
     StringBuilder b = new StringBuilder(indent).append(path).append(" {\n");
-    b.append(indent).append(" r:").append(repetitionLevelColumn.getAllocatedSize()).append(" bytes\n");
-    b.append(indent).append(" d:").append(definitionLevelColumn.getAllocatedSize()).append(" bytes\n");
+    b.append(indent)
+        .append(" r:")
+        .append(repetitionLevelColumn.getAllocatedSize())
+        .append(" bytes\n");
+    b.append(indent)
+        .append(" d:")
+        .append(definitionLevelColumn.getAllocatedSize())
+        .append(" bytes\n");
     b.append(dataColumn.memUsageString(indent + "  data:")).append("\n");
     b.append(pageWriter.memUsageString(indent + "  pages:")).append("\n");
-    b.append(indent).append(String.format("  total: %,d/%,d", getTotalBufferedSize(), allocatedSize())).append("\n");
+    b.append(indent)
+        .append(String.format("  total: %,d/%,d", getTotalBufferedSize(), allocatedSize()))
+        .append("\n");
     b.append(indent).append("}\n");
     return b.toString();
   }
@@ -383,8 +377,7 @@ abstract class ColumnWriterBase implements ColumnWriter {
       throw new ParquetEncodingException("writing empty page");
     }
     this.rowsWrittenSoFar += pageRowCount;
-    if (DEBUG)
-      LOG.debug("write page");
+    if (DEBUG) LOG.debug("write page");
     try {
       writePage(pageRowCount, valueCount, statistics, repetitionLevelColumn, definitionLevelColumn, dataColumn);
     } catch (IOException e) {
@@ -398,6 +391,12 @@ abstract class ColumnWriterBase implements ColumnWriter {
     pageRowCount = 0;
   }
 
-  abstract void writePage(int rowCount, int valueCount, Statistics<?> statistics, ValuesWriter repetitionLevels,
-      ValuesWriter definitionLevels, ValuesWriter values) throws IOException;
+  abstract void writePage(
+      int rowCount,
+      int valueCount,
+      Statistics<?> statistics,
+      ValuesWriter repetitionLevels,
+      ValuesWriter definitionLevels,
+      ValuesWriter values)
+      throws IOException;
 }

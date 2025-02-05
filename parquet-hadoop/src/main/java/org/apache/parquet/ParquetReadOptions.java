@@ -19,6 +19,13 @@
 
 package org.apache.parquet;
 
+import static org.apache.parquet.format.converter.ParquetMetadataConverter.NO_FILTER;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.HeapByteBufferAllocator;
 import org.apache.parquet.compression.CompressionCodecFactory;
@@ -26,14 +33,6 @@ import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.format.converter.ParquetMetadataConverter;
 import org.apache.parquet.hadoop.util.HadoopCodecs;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.apache.parquet.format.converter.ParquetMetadataConverter.NO_FILTER;
 
 // Internal use only
 public class ParquetReadOptions {
@@ -60,20 +59,21 @@ public class ParquetReadOptions {
   private final Map<String, String> properties;
   private final FileDecryptionProperties fileDecryptionProperties;
 
-  ParquetReadOptions(boolean useSignedStringMinMax,
-                     boolean useStatsFilter,
-                     boolean useDictionaryFilter,
-                     boolean useRecordFilter,
-                     boolean useColumnIndexFilter,
-                     boolean usePageChecksumVerification,
-                     boolean useBloomFilter,
-                     FilterCompat.Filter recordFilter,
-                     ParquetMetadataConverter.MetadataFilter metadataFilter,
-                     CompressionCodecFactory codecFactory,
-                     ByteBufferAllocator allocator,
-                     int maxAllocationSize,
-                     Map<String, String> properties,
-                     FileDecryptionProperties fileDecryptionProperties) {
+  ParquetReadOptions(
+      boolean useSignedStringMinMax,
+      boolean useStatsFilter,
+      boolean useDictionaryFilter,
+      boolean useRecordFilter,
+      boolean useColumnIndexFilter,
+      boolean usePageChecksumVerification,
+      boolean useBloomFilter,
+      FilterCompat.Filter recordFilter,
+      ParquetMetadataConverter.MetadataFilter metadataFilter,
+      CompressionCodecFactory codecFactory,
+      ByteBufferAllocator allocator,
+      int maxAllocationSize,
+      Map<String, String> properties,
+      FileDecryptionProperties fileDecryptionProperties) {
     this.useSignedStringMinMax = useSignedStringMinMax;
     this.useStatsFilter = useStatsFilter;
     this.useDictionaryFilter = useDictionaryFilter;
@@ -152,8 +152,7 @@ public class ParquetReadOptions {
 
   public boolean isEnabled(String property, boolean defaultValue) {
     Optional<String> propValue = Optional.ofNullable(properties.get(property));
-    return propValue.isPresent() ? Boolean.valueOf(propValue.get())
-        : defaultValue;
+    return propValue.isPresent() ? Boolean.valueOf(propValue.get()) : defaultValue;
   }
 
   public static Builder builder() {
@@ -225,7 +224,6 @@ public class ParquetReadOptions {
     public Builder useColumnIndexFilter() {
       return useColumnIndexFilter(true);
     }
-
 
     public Builder usePageChecksumVerification(boolean usePageChecksumVerification) {
       this.usePageChecksumVerification = usePageChecksumVerification;
@@ -319,9 +317,20 @@ public class ParquetReadOptions {
       }
 
       return new ParquetReadOptions(
-        useSignedStringMinMax, useStatsFilter, useDictionaryFilter, useRecordFilter,
-        useColumnIndexFilter, usePageChecksumVerification, useBloomFilter, recordFilter, metadataFilter,
-        codecFactory, allocator, maxAllocationSize, properties, fileDecryptionProperties);
+          useSignedStringMinMax,
+          useStatsFilter,
+          useDictionaryFilter,
+          useRecordFilter,
+          useColumnIndexFilter,
+          usePageChecksumVerification,
+          useBloomFilter,
+          recordFilter,
+          metadataFilter,
+          codecFactory,
+          allocator,
+          maxAllocationSize,
+          properties,
+          fileDecryptionProperties);
     }
   }
 }

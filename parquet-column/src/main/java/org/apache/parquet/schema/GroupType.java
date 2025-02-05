@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-
 import org.apache.parquet.io.InvalidRecordException;
 
 /**
@@ -114,7 +113,8 @@ public class GroupType extends Type {
     }
   }
 
-  GroupType(Repetition repetition, String name, LogicalTypeAnnotation logicalTypeAnnotation, List<Type> fields, ID id) {
+  GroupType(
+      Repetition repetition, String name, LogicalTypeAnnotation logicalTypeAnnotation, List<Type> fields, ID id) {
     super(name, repetition, logicalTypeAnnotation, id);
     this.fields = fields;
     this.indexByName = new HashMap<>();
@@ -240,12 +240,14 @@ public class GroupType extends Type {
         .append(getRepetition().name().toLowerCase(Locale.ENGLISH))
         .append(" group ")
         .append(getName())
-        .append(getLogicalTypeAnnotation() == null ? "" : " (" + getLogicalTypeAnnotation().toString() +")")
+        .append(
+            getLogicalTypeAnnotation() == null
+                ? ""
+                : " (" + getLogicalTypeAnnotation().toString() + ")")
         .append(getId() == null ? "" : " = " + getId())
         .append(" {\n");
     membersDisplayString(sb, indent + "  ");
-    sb.append(indent)
-        .append("}");
+    sb.append(indent).append("}");
   }
 
   /**
@@ -256,12 +258,14 @@ public class GroupType extends Type {
     visitor.visit(this);
   }
 
-  @Override @Deprecated
+  @Override
+  @Deprecated
   protected int typeHashCode() {
     return hashCode();
   }
 
-  @Override @Deprecated
+  @Override
+  @Deprecated
   protected boolean typeEquals(Type other) {
     return equals(other);
   }
@@ -279,10 +283,9 @@ public class GroupType extends Type {
    */
   @Override
   protected boolean equals(Type otherType) {
-    return
-        !otherType.isPrimitive()
+    return !otherType.isPrimitive()
         && super.equals(otherType)
-        && Objects.equals(getLogicalTypeAnnotation(),otherType.getLogicalTypeAnnotation())
+        && Objects.equals(getLogicalTypeAnnotation(), otherType.getLogicalTypeAnnotation())
         && getFields().equals(otherType.asGroupType().getFields());
   }
 
@@ -374,9 +377,15 @@ public class GroupType extends Type {
   @Override
   protected Type union(Type toMerge, boolean strict) {
     if (toMerge.isPrimitive()) {
-      throw new IncompatibleSchemaModificationException("can not merge primitive type " + toMerge + " into group type " + this);
+      throw new IncompatibleSchemaModificationException(
+          "can not merge primitive type " + toMerge + " into group type " + this);
     }
-    return new GroupType(toMerge.getRepetition(), getName(), toMerge.getLogicalTypeAnnotation(), mergeFields(toMerge.asGroupType()), getId());
+    return new GroupType(
+        toMerge.getRepetition(),
+        getName(),
+        toMerge.getLogicalTypeAnnotation(),
+        mergeFields(toMerge.asGroupType()),
+        getId());
   }
 
   /**
@@ -401,8 +410,10 @@ public class GroupType extends Type {
       Type merged;
       if (toMerge.containsField(type.getName())) {
         Type fieldToMerge = toMerge.getType(type.getName());
-        if (type.getLogicalTypeAnnotation() != null && !type.getLogicalTypeAnnotation().equals(fieldToMerge.getLogicalTypeAnnotation())) {
-          throw new IncompatibleSchemaModificationException("cannot merge logical type " + fieldToMerge.getLogicalTypeAnnotation() + " into " + type.getLogicalTypeAnnotation());
+        if (type.getLogicalTypeAnnotation() != null
+            && !type.getLogicalTypeAnnotation().equals(fieldToMerge.getLogicalTypeAnnotation())) {
+          throw new IncompatibleSchemaModificationException("cannot merge logical type "
+              + fieldToMerge.getLogicalTypeAnnotation() + " into " + type.getLogicalTypeAnnotation());
         }
         merged = type.union(fieldToMerge, strict);
       } else {

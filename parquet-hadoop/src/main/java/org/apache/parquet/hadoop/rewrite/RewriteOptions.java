@@ -18,15 +18,14 @@
  */
 package org.apache.parquet.hadoop.rewrite;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.crypto.FileEncryptionProperties;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A set of options to create a ParquetRewriter.
@@ -42,14 +41,15 @@ public class RewriteOptions {
   final List<String> encryptColumns;
   final FileEncryptionProperties fileEncryptionProperties;
 
-  private RewriteOptions(Configuration conf,
-                         List<Path> inputFiles,
-                         Path outputFile,
-                         List<String> pruneColumns,
-                         CompressionCodecName newCodecName,
-                         Map<String, MaskMode> maskColumns,
-                         List<String> encryptColumns,
-                         FileEncryptionProperties fileEncryptionProperties) {
+  private RewriteOptions(
+      Configuration conf,
+      List<Path> inputFiles,
+      Path outputFile,
+      List<String> pruneColumns,
+      CompressionCodecName newCodecName,
+      Map<String, MaskMode> maskColumns,
+      List<String> encryptColumns,
+      FileEncryptionProperties fileEncryptionProperties) {
     this.conf = conf;
     this.inputFiles = inputFiles;
     this.outputFile = outputFile;
@@ -225,38 +225,40 @@ public class RewriteOptions {
       if (pruneColumns != null) {
         if (maskColumns != null) {
           for (String pruneColumn : pruneColumns) {
-            Preconditions.checkArgument(!maskColumns.containsKey(pruneColumn),
-                    "Cannot prune and mask same column");
+            Preconditions.checkArgument(
+                !maskColumns.containsKey(pruneColumn), "Cannot prune and mask same column");
           }
         }
 
         if (encryptColumns != null) {
           for (String pruneColumn : pruneColumns) {
-            Preconditions.checkArgument(!encryptColumns.contains(pruneColumn),
-                    "Cannot prune and encrypt same column");
+            Preconditions.checkArgument(
+                !encryptColumns.contains(pruneColumn), "Cannot prune and encrypt same column");
           }
         }
       }
 
       if (encryptColumns != null && !encryptColumns.isEmpty()) {
-        Preconditions.checkArgument(fileEncryptionProperties != null,
-                "FileEncryptionProperties is required when encrypting columns");
+        Preconditions.checkArgument(
+            fileEncryptionProperties != null,
+            "FileEncryptionProperties is required when encrypting columns");
       }
 
       if (fileEncryptionProperties != null) {
-        Preconditions.checkArgument(encryptColumns != null && !encryptColumns.isEmpty(),
-                "Encrypt columns is required when FileEncryptionProperties is set");
+        Preconditions.checkArgument(
+            encryptColumns != null && !encryptColumns.isEmpty(),
+            "Encrypt columns is required when FileEncryptionProperties is set");
       }
 
-      return new RewriteOptions(conf,
-              inputFiles,
-              outputFile,
-              pruneColumns,
-              newCodecName,
-              maskColumns,
-              encryptColumns,
-              fileEncryptionProperties);
+      return new RewriteOptions(
+          conf,
+          inputFiles,
+          outputFile,
+          pruneColumns,
+          newCodecName,
+          maskColumns,
+          encryptColumns,
+          fileEncryptionProperties);
     }
   }
-
 }

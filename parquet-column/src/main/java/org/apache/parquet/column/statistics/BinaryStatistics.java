@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,8 +25,8 @@ import org.apache.parquet.schema.Types;
 public class BinaryStatistics extends Statistics<Binary> {
 
   // A fake type object to be used to generate the proper comparator
-  private static final PrimitiveType DEFAULT_FAKE_TYPE = Types.optional(PrimitiveType.PrimitiveTypeName.BINARY)
-      .named("fake_binary_type");
+  private static final PrimitiveType DEFAULT_FAKE_TYPE =
+      Types.optional(PrimitiveType.PrimitiveTypeName.BINARY).named("fake_binary_type");
 
   private Binary max;
   private Binary min;
@@ -66,7 +66,7 @@ public class BinaryStatistics extends Statistics<Binary> {
 
   @Override
   public void mergeStatisticsMinMax(Statistics stats) {
-    BinaryStatistics binaryStats = (BinaryStatistics)stats;
+    BinaryStatistics binaryStats = (BinaryStatistics) stats;
     if (!this.hasNonNullValue()) {
       initializeStats(binaryStats.getMin(), binaryStats.getMax());
     } else {
@@ -125,8 +125,12 @@ public class BinaryStatistics extends Statistics<Binary> {
    */
   @Deprecated
   public void updateStats(Binary min_value, Binary max_value) {
-    if (comparator().compare(min, min_value) > 0) { min = min_value.copy(); }
-    if (comparator().compare(max, max_value) < 0) { max = max_value.copy(); }
+    if (comparator().compare(min, min_value) > 0) {
+      min = min_value.copy();
+    }
+    if (comparator().compare(max, max_value) < 0) {
+      max = max_value.copy();
+    }
   }
 
   /**
@@ -136,9 +140,9 @@ public class BinaryStatistics extends Statistics<Binary> {
    */
   @Deprecated
   public void initializeStats(Binary min_value, Binary max_value) {
-      min = min_value.copy();
-      max = max_value.copy();
-      this.markAsNotEmpty();
+    min = min_value.copy();
+    max = max_value.copy();
+    this.markAsNotEmpty();
   }
 
   @Override

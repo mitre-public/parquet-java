@@ -18,6 +18,9 @@
  */
 package org.apache.parquet.format.event;
 
+import org.apache.parquet.format.event.TypedConsumer.ListConsumer;
+import org.apache.parquet.format.event.TypedConsumer.MapConsumer;
+import org.apache.parquet.format.event.TypedConsumer.SetConsumer;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
@@ -25,10 +28,6 @@ import org.apache.thrift.protocol.TMap;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TSet;
 import org.apache.thrift.protocol.TType;
-
-import org.apache.parquet.format.event.TypedConsumer.ListConsumer;
-import org.apache.parquet.format.event.TypedConsumer.MapConsumer;
-import org.apache.parquet.format.event.TypedConsumer.SetConsumer;
 
 /**
  * Event based reader for Thrift
@@ -77,8 +76,7 @@ public final class EventBasedThriftReader {
    * @param tSet the set descriptor
    * @throws TException if any thrift related error occurs during the reading
    */
-  public void readSetContent(SetConsumer eventConsumer, TSet tSet)
-      throws TException {
+  public void readSetContent(SetConsumer eventConsumer, TSet tSet) throws TException {
     for (int i = 0; i < tSet.size; i++) {
       eventConsumer.consumeElement(protocol, this, tSet.elemType);
     }
@@ -90,8 +88,7 @@ public final class EventBasedThriftReader {
    * @param tMap the map descriptor
    * @throws TException if any thrift related error occurs during the reading
    */
-  public void readMapContent(MapConsumer eventConsumer, TMap tMap)
-      throws TException {
+  public void readMapContent(MapConsumer eventConsumer, TMap tMap) throws TException {
     for (int i = 0; i < tMap.size; i++) {
       eventConsumer.consumeEntry(protocol, this, tMap.keyType, tMap.valueType);
     }
@@ -117,8 +114,7 @@ public final class EventBasedThriftReader {
    * @param tList the list descriptor
    * @throws TException if any thrift related error occurs during the reading
    */
-  public void readListContent(ListConsumer eventConsumer, TList tList)
-      throws TException {
+  public void readListContent(ListConsumer eventConsumer, TList tList) throws TException {
     for (int i = 0; i < tList.size; i++) {
       eventConsumer.consumeElement(protocol, this, tList.elemType);
     }

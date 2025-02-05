@@ -24,7 +24,7 @@ import java.util.Objects;
  * Utility for parameter validation
  */
 public final class Preconditions {
-  private Preconditions() { }
+  private Preconditions() {}
 
   /**
    * @param o the param to check
@@ -72,8 +72,7 @@ public final class Preconditions {
    */
   public static void checkArgument(boolean isValid, String message, Object arg0) throws IllegalArgumentException {
     if (!isValid) {
-      throw new IllegalArgumentException(
-          String.format(String.valueOf(message), strings(arg0)));
+      throw new IllegalArgumentException(String.format(String.valueOf(message), strings(arg0)));
     }
   }
 
@@ -91,10 +90,10 @@ public final class Preconditions {
    *          Second parameter of the message string template
    * @throws IllegalArgumentException if {@code isValid} is false
    */
-  public static void checkArgument(boolean isValid, String message, Object arg0, Object arg1) throws IllegalArgumentException {
+  public static void checkArgument(boolean isValid, String message, Object arg0, Object arg1)
+      throws IllegalArgumentException {
     if (!isValid) {
-      throw new IllegalArgumentException(
-          String.format(String.valueOf(message), strings(arg0, arg1)));
+      throw new IllegalArgumentException(String.format(String.valueOf(message), strings(arg0, arg1)));
     }
   }
 
@@ -114,10 +113,10 @@ public final class Preconditions {
    *          Third parameter of the message string template
    * @throws IllegalArgumentException if {@code isValid} is false
    */
-  public static void checkArgument(boolean isValid, String message, Object arg0, Object arg1, Object arg2) throws IllegalArgumentException {
+  public static void checkArgument(boolean isValid, String message, Object arg0, Object arg1, Object arg2)
+      throws IllegalArgumentException {
     if (!isValid) {
-      throw new IllegalArgumentException(
-          String.format(String.valueOf(message), strings(arg0, arg1, arg2)));
+      throw new IllegalArgumentException(String.format(String.valueOf(message), strings(arg0, arg1, arg2)));
     }
   }
 
@@ -133,11 +132,9 @@ public final class Preconditions {
    *          Objects used to fill in {@code %s} placeholders in the message
    * @throws IllegalArgumentException if {@code isValid} is false
    */
-  public static void checkArgument(boolean isValid, String message, Object... args)
-      throws IllegalArgumentException {
+  public static void checkArgument(boolean isValid, String message, Object... args) throws IllegalArgumentException {
     if (!isValid) {
-      throw new IllegalArgumentException(
-          String.format(String.valueOf(message), strings(args)));
+      throw new IllegalArgumentException(String.format(String.valueOf(message), strings(args)));
     }
   }
 
@@ -171,8 +168,7 @@ public final class Preconditions {
    */
   public static void checkState(boolean isValid, String message, Object arg0) throws IllegalStateException {
     if (!isValid) {
-      throw new IllegalStateException(
-          String.format(String.valueOf(message), strings(arg0)));
+      throw new IllegalStateException(String.format(String.valueOf(message), strings(arg0)));
     }
   }
 
@@ -190,10 +186,10 @@ public final class Preconditions {
    *          Second parameter of the message string template
    * @throws IllegalStateException if {@code isValid} is false
    */
-  public static void checkState(boolean isValid, String message, Object arg0, Object arg1) throws IllegalStateException {
+  public static void checkState(boolean isValid, String message, Object arg0, Object arg1)
+      throws IllegalStateException {
     if (!isValid) {
-      throw new IllegalStateException(
-          String.format(String.valueOf(message), strings(arg0, arg1)));
+      throw new IllegalStateException(String.format(String.valueOf(message), strings(arg0, arg1)));
     }
   }
 
@@ -213,10 +209,10 @@ public final class Preconditions {
    *          Third parameter of the message string template
    * @throws IllegalStateException if {@code isValid} is false
    */
-  public static void checkState(boolean isValid, String message, Object arg0, Object arg1, Object arg2) throws IllegalStateException {
+  public static void checkState(boolean isValid, String message, Object arg0, Object arg1, Object arg2)
+      throws IllegalStateException {
     if (!isValid) {
-      throw new IllegalStateException(
-          String.format(String.valueOf(message), strings(arg0, arg1, arg2)));
+      throw new IllegalStateException(String.format(String.valueOf(message), strings(arg0, arg1, arg2)));
     }
   }
 
@@ -232,11 +228,9 @@ public final class Preconditions {
    *          Objects used to fill in {@code %s} placeholders in the message
    * @throws IllegalStateException if {@code isValid} is false
    */
-  public static void checkState(boolean isValid, String message, Object... args)
-      throws IllegalStateException {
+  public static void checkState(boolean isValid, String message, Object... args) throws IllegalStateException {
     if (!isValid) {
-      throw new IllegalStateException(
-          String.format(String.valueOf(message), strings(args)));
+      throw new IllegalStateException(String.format(String.valueOf(message), strings(args)));
     }
   }
 
@@ -247,5 +241,4 @@ public final class Preconditions {
     }
     return strings;
   }
-
 }

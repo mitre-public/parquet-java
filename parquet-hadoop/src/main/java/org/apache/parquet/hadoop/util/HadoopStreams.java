@@ -19,6 +19,8 @@
 
 package org.apache.parquet.hadoop.util;
 
+import java.io.InputStream;
+import java.util.Objects;
 import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -28,9 +30,6 @@ import org.apache.parquet.util.DynMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.Objects;
-
 /**
  * Convenience methods to get Parquet abstractions for Hadoop data streams.
  */
@@ -38,9 +37,7 @@ public class HadoopStreams {
 
   private static final Logger LOG = LoggerFactory.getLogger(HadoopStreams.class);
 
-  private static final DynMethods.UnboundMethod hasCapabilitiesMethod =
-    new DynMethods
-      .Builder("hasCapabilities")
+  private static final DynMethods.UnboundMethod hasCapabilitiesMethod = new DynMethods.Builder("hasCapabilities")
       .impl(FSDataInputStream.class, "hasCapabilities", String.class)
       .orNoop()
       .build();
@@ -132,7 +129,6 @@ public class HadoopStreams {
     }
     return wrapped instanceof ByteBufferReadable;
   }
-
 
   /**
    * Wraps a {@link FSDataOutputStream} in a {@link PositionOutputStream}

@@ -59,8 +59,8 @@ public interface EncryptionPropertiesFactory {
    * @throws BadConfigurationException if the instantiation of the configured class fails
    */
   static EncryptionPropertiesFactory loadFactory(Configuration conf) {
-    final Class<?> encryptionPropertiesFactoryClass = ConfigurationUtil.getClassFromConfig(conf,
-      CRYPTO_FACTORY_CLASS_PROPERTY_NAME, EncryptionPropertiesFactory.class);
+    final Class<?> encryptionPropertiesFactoryClass = ConfigurationUtil.getClassFromConfig(
+        conf, CRYPTO_FACTORY_CLASS_PROPERTY_NAME, EncryptionPropertiesFactory.class);
 
     if (null == encryptionPropertiesFactoryClass) {
       LOG.debug("EncryptionPropertiesFactory is not configured - name not found in hadoop config");
@@ -70,8 +70,9 @@ public interface EncryptionPropertiesFactory {
     try {
       return (EncryptionPropertiesFactory) encryptionPropertiesFactoryClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      throw new BadConfigurationException("could not instantiate encryptionPropertiesFactoryClass class: "
-        + encryptionPropertiesFactoryClass, e);
+      throw new BadConfigurationException(
+          "could not instantiate encryptionPropertiesFactoryClass class: " + encryptionPropertiesFactoryClass,
+          e);
     }
   }
 
@@ -88,6 +89,7 @@ public interface EncryptionPropertiesFactory {
    * @return object with class of FileEncryptionProperties. Null return value means the file should not be encrypted.
    * @throws ParquetCryptoRuntimeException if there is an exception while creating the object
    */
-  FileEncryptionProperties getFileEncryptionProperties(Configuration fileHadoopConfig, Path tempFilePath,
-                                                       WriteContext fileWriteContext) throws ParquetCryptoRuntimeException;
+  FileEncryptionProperties getFileEncryptionProperties(
+      Configuration fileHadoopConfig, Path tempFilePath, WriteContext fileWriteContext)
+      throws ParquetCryptoRuntimeException;
 }

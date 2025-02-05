@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -35,11 +35,11 @@ public final class PagedRecordFilter implements RecordFilter {
    * @param pageSize The size of the page.
    * @return a paged record filter
    */
-  public static final UnboundRecordFilter page( final long startPos, final long pageSize ) {
+  public static final UnboundRecordFilter page(final long startPos, final long pageSize) {
     return new UnboundRecordFilter() {
       @Override
       public RecordFilter bind(Iterable<ColumnReader> readers) {
-        return new PagedRecordFilter( startPos, pageSize );
+        return new PagedRecordFilter(startPos, pageSize);
       }
     };
   }
@@ -49,7 +49,7 @@ public final class PagedRecordFilter implements RecordFilter {
    */
   private PagedRecordFilter(long startPos, long pageSize) {
     this.startPos = startPos;
-    this.endPos   = startPos + pageSize;
+    this.endPos = startPos + pageSize;
   }
 
   /**
@@ -59,7 +59,6 @@ public final class PagedRecordFilter implements RecordFilter {
   @Override
   public boolean isMatch() {
     currentPos++;
-    return (( currentPos >= startPos ) && ( currentPos < endPos ));
+    return ((currentPos >= startPos) && (currentPos < endPos));
   }
-
 }

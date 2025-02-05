@@ -21,11 +21,9 @@ package org.apache.parquet.hadoop;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.hadoop.CodecFactory.BytesCompressor;
@@ -66,7 +64,8 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
       WriteSupport<T> writeSupport,
       MessageType schema,
       Map<String, String> extraMetaData,
-      int blockSize, int pageSize,
+      int blockSize,
+      int pageSize,
       BytesCompressor compressor,
       int dictionaryPageSize,
       boolean enableDictionary,
@@ -78,8 +77,8 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
         .withDictionaryEncoding(enableDictionary)
         .withWriterVersion(writerVersion)
         .build();
-    internalWriter = new InternalParquetRecordWriter<T>(w, writeSupport, schema,
-        extraMetaData, blockSize, compressor, validating, props);
+    internalWriter = new InternalParquetRecordWriter<T>(
+        w, writeSupport, schema, extraMetaData, blockSize, compressor, validating, props);
     this.memoryManager = null;
     this.codecFactory = null;
   }
@@ -105,7 +104,8 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
       WriteSupport<T> writeSupport,
       MessageType schema,
       Map<String, String> extraMetaData,
-      long blockSize, int pageSize,
+      long blockSize,
+      int pageSize,
       BytesCompressor compressor,
       int dictionaryPageSize,
       boolean enableDictionary,
@@ -118,8 +118,8 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
         .withDictionaryEncoding(enableDictionary)
         .withWriterVersion(writerVersion)
         .build();
-    internalWriter = new InternalParquetRecordWriter<T>(w, writeSupport, schema,
-        extraMetaData, blockSize, compressor, validating, props);
+    internalWriter = new InternalParquetRecordWriter<T>(
+        w, writeSupport, schema, extraMetaData, blockSize, compressor, validating, props);
     this.memoryManager = Objects.requireNonNull(memoryManager, "memoryManager cannot be null");
     memoryManager.addWriter(internalWriter, blockSize);
     this.codecFactory = null;
@@ -148,8 +148,14 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
       MemoryManager memoryManager,
       Configuration conf) {
     this.codecFactory = new CodecFactory(conf, props.getPageSizeThreshold());
-    internalWriter = new InternalParquetRecordWriter<T>(w, writeSupport, schema,
-        extraMetaData, blockSize, codecFactory.getCompressor(codec), validating,
+    internalWriter = new InternalParquetRecordWriter<T>(
+        w,
+        writeSupport,
+        schema,
+        extraMetaData,
+        blockSize,
+        codecFactory.getCompressor(codec),
+        validating,
         props);
     this.memoryManager = Objects.requireNonNull(memoryManager, "memoryManager cannot be null");
     memoryManager.addWriter(internalWriter, blockSize);
@@ -180,5 +186,4 @@ public class ParquetRecordWriter<T> extends RecordWriter<Void, T> {
   public void write(Void key, T value) throws IOException, InterruptedException {
     internalWriter.write(value);
   }
-
 }

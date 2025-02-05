@@ -18,6 +18,10 @@
  */
 package org.apache.parquet.hadoop.util;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.bytes.BytesInput;
@@ -26,11 +30,6 @@ import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.apache.parquet.hadoop.rewrite.ParquetRewriter;
 import org.apache.parquet.hadoop.rewrite.RewriteOptions;
 import org.apache.parquet.hadoop.util.CompressionConverter.TransParquetFileReader;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This class is for fast rewriting existing file with column encryption
@@ -58,11 +57,15 @@ public class ColumnEncryptor {
    * @param fileEncryptionProperties FileEncryptionProperties of the file
    * @throws IOException
    */
-  public void encryptColumns(String inputFile, String outputFile, List<String> paths, FileEncryptionProperties fileEncryptionProperties) throws IOException {
+  public void encryptColumns(
+      String inputFile, String outputFile, List<String> paths, FileEncryptionProperties fileEncryptionProperties)
+      throws IOException {
     Path inPath = new Path(inputFile);
     Path outPath = new Path(outputFile);
-    RewriteOptions options = new RewriteOptions.Builder(conf, inPath, outPath).
-            encrypt(paths).encryptionProperties(fileEncryptionProperties).build();
+    RewriteOptions options = new RewriteOptions.Builder(conf, inPath, outPath)
+        .encrypt(paths)
+        .encryptionProperties(fileEncryptionProperties)
+        .build();
     ParquetRewriter rewriter = new ParquetRewriter(options);
     rewriter.processBlocks();
     rewriter.close();

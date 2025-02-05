@@ -28,18 +28,17 @@ import java.io.IOException;
 @Deprecated
 public class IOExceptionUtils {
 
-	/**
-	 * Call the close method on a {@link Closeable}, wrapping any IOException
-	 * in a runtime exception.
-	 *
-	 * @param closeable - resource to close
-	 */
-	public static void closeQuietly(Closeable closeable) {
-		try {
-			closeable.close();
-		} catch(IOException e) {
-			throw new ParquetRuntimeException("Error closing I/O related resources.", e) {};
-		}
-	}
-
+  /**
+   * Call the close method on a {@link Closeable}, wrapping any IOException
+   * in a runtime exception.
+   *
+   * @param closeable - resource to close
+   */
+  public static void closeQuietly(Closeable closeable) {
+    try {
+      closeable.close();
+    } catch (IOException e) {
+      throw new ParquetRuntimeException("Error closing I/O related resources.", e) {};
+    }
+  }
 }

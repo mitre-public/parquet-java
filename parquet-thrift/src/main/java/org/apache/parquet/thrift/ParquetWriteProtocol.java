@@ -18,20 +18,8 @@
  */
 package org.apache.parquet.thrift;
 
-
 import java.nio.ByteBuffer;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TList;
-import org.apache.thrift.protocol.TMap;
-import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TSet;
-import org.apache.thrift.protocol.TStruct;
-import org.apache.thrift.protocol.TType;
-
 import org.apache.parquet.io.ColumnIO;
 import org.apache.parquet.io.GroupColumnIO;
 import org.apache.parquet.io.MessageColumnIO;
@@ -47,6 +35,15 @@ import org.apache.parquet.thrift.struct.ThriftType.ListType;
 import org.apache.parquet.thrift.struct.ThriftType.MapType;
 import org.apache.parquet.thrift.struct.ThriftType.SetType;
 import org.apache.parquet.thrift.struct.ThriftType.StructType;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TField;
+import org.apache.thrift.protocol.TList;
+import org.apache.thrift.protocol.TMap;
+import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TSet;
+import org.apache.thrift.protocol.TStruct;
+import org.apache.thrift.protocol.TType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +59,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     public void start();
 
     public void end();
-
   }
 
   abstract class FieldBaseWriteProtocol extends ParquetProtocol {
@@ -85,6 +81,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
 
     private final EnumType type;
     private PrimitiveColumnIO columnIO;
+
     public EnumWriteProtocol(PrimitiveColumnIO columnIO, EnumType type, Events returnClause) {
       super(returnClause);
       this.columnIO = columnIO;
@@ -96,12 +93,12 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       start();
       EnumValue value = type.getEnumValueById(i32);
       if (value == null) {
-        throw new ParquetEncodingException("Can not find enum value of index " + i32 + " for field:" + columnIO.toString());
+        throw new ParquetEncodingException(
+            "Can not find enum value of index " + i32 + " for field:" + columnIO.toString());
       }
       recordConsumer.addBinary(Binary.fromString(value.getName()));
       end();
     }
-
   }
 
   abstract class ListWriteProtocol extends FieldBaseWriteProtocol {
@@ -111,9 +108,9 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       super(returnClause);
     }
 
-    abstract protected void startListWrapper();
+    protected abstract void startListWrapper();
 
-    abstract protected void endListWrapper();
+    protected abstract void endListWrapper();
 
     @Override
     public void writeListBegin(TList list) throws TException {
@@ -136,7 +133,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     public void writeSetEnd() throws TException {
       endListWrapper();
     }
-
   }
 
   class TwoLevelListWriteProtocol extends ListWriteProtocol {
@@ -148,13 +144,13 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       this.listContent = columnIO.getChild(0);
       this.contentProtocol = getProtocol(values, listContent, new Events() {
         int consumedRecords = 0;
+
         @Override
-        public void start() {
-        }
+        public void start() {}
 
         @Override
         public void end() {
-          ++ consumedRecords;
+          ++consumedRecords;
           if (consumedRecords == size) {
             currentProtocol = TwoLevelListWriteProtocol.this;
             consumedRecords = 0;
@@ -188,13 +184,13 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     private ColumnIO elementContent;
     private TProtocol contentProtocol;
 
-    public ThreeLevelListWriteProtocol(GroupColumnIO columnIO, ThriftField values,
-                                    Events returnClause) {
+    public ThreeLevelListWriteProtocol(GroupColumnIO columnIO, ThriftField values, Events returnClause) {
       super(returnClause);
       this.listContent = (GroupColumnIO) columnIO.getChild(0);
       this.elementContent = listContent.getChild(0);
       this.contentProtocol = getProtocol(values, elementContent, new Events() {
         int consumedRecords = 0;
+
         @Override
         public void start() {
           recordConsumer.startGroup();
@@ -205,7 +201,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
         public void end() {
           recordConsumer.endField("element", 0);
           recordConsumer.endGroup();
-          ++ consumedRecords;
+          ++consumedRecords;
           if (consumedRecords == size) {
             currentProtocol = ThreeLevelListWriteProtocol.this;
             consumedRecords = 0;
@@ -247,7 +243,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
 
     public MapWriteProtocol(GroupColumnIO columnIO, MapType type, Events returnClause) {
       super(returnClause);
-      this.mapContent = (GroupColumnIO)columnIO.getChild(0);
+      this.mapContent = (GroupColumnIO) columnIO.getChild(0);
       this.key = mapContent.getChild(0);
       this.value = mapContent.getChild(1);
       this.keyProtocol = getProtocol(type.getKey(), this.key, new Events() {
@@ -256,6 +252,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
           recordConsumer.startGroup();
           recordConsumer.startField(key.getName(), key.getIndex());
         }
+
         @Override
         public void end() {
           recordConsumer.endField(key.getName(), key.getIndex());
@@ -264,13 +261,15 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       });
       this.valueProtocol = getProtocol(type.getValue(), this.value, new Events() {
         int consumed;
+
         @Override
         public void start() {
           recordConsumer.startField(value.getName(), value.getIndex());
         }
+
         @Override
         public void end() {
-          consumed ++;
+          consumed++;
           recordConsumer.endField(value.getName(), value.getIndex());
           recordConsumer.endGroup();
           if (consumed == countToConsume) {
@@ -279,7 +278,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
           } else {
             currentProtocol = keyProtocol;
           }
-
         }
       });
     }
@@ -303,7 +301,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       recordConsumer.endGroup();
       end();
     }
-
   }
 
   class PrimitiveWriteProtocol extends FieldBaseWriteProtocol {
@@ -367,7 +364,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       writeBinaryToRecordConsumer(buf);
       end();
     }
-
   }
 
   class StructWriteProtocol extends FieldBaseWriteProtocol {
@@ -392,8 +388,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       for (int i = 0; i < thriftType.getChildren().size(); i++) {
         thriftFieldIdToParquetField[thriftType.getChildren().get(i).getFieldId()] = schema.getChild(i);
       }
-      for (ThriftField field : thriftType.getChildren()) {
-      }
+      for (ThriftField field : thriftType.getChildren()) {}
       this.schema = schema;
       children = new TProtocol[thriftType.getChildren().size()];
       for (int i = 0; i < children.length; i++) {
@@ -406,8 +401,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
           TProtocol p;
           p = getProtocol(field, columnIO, new Events() {
             @Override
-            public void start() {
-            }
+            public void start() {}
 
             @Override
             public void end() {
@@ -441,13 +435,15 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       try {
         currentType = thriftFieldIdToParquetField[field.id];
         if (currentType == null) {
-          throw new ParquetEncodingException("field " + field.id + " was not found in " + thriftType + " and " + schema.getType());
+          throw new ParquetEncodingException(
+              "field " + field.id + " was not found in " + thriftType + " and " + schema.getType());
         }
         final int index = currentType.getIndex();
         recordConsumer.startField(currentType.getName(), index);
         currentProtocol = children[index];
       } catch (ArrayIndexOutOfBoundsException e) {
-        throw new ParquetEncodingException("field " + field.id + " was not found in " + thriftType + " and " + schema.getType());
+        throw new ParquetEncodingException(
+            "field " + field.id + " was not found in " + thriftType + " and " + schema.getType());
       }
     }
 
@@ -477,11 +473,9 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     public void writeStructEnd() throws TException {
       recordConsumer.endMessage();
     }
-
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(ParquetWriteProtocol.class);
-
 
   private final RecordConsumer recordConsumer;
   private TProtocol currentProtocol;
@@ -502,8 +496,8 @@ public class ParquetWriteProtocol extends ParquetProtocol {
       Configuration configuration, RecordConsumer recordConsumer, MessageColumnIO schema, StructType thriftType) {
     this.recordConsumer = recordConsumer;
     if (configuration != null) {
-      this.writeThreeLevelList = configuration.getBoolean(
-          WRITE_THREE_LEVEL_LISTS, WRITE_THREE_LEVEL_LISTS_DEFAULT);
+      this.writeThreeLevelList =
+          configuration.getBoolean(WRITE_THREE_LEVEL_LISTS, WRITE_THREE_LEVEL_LISTS_DEFAULT);
     }
     this.currentProtocol = new MessageWriteProtocol(schema, thriftType);
   }
@@ -539,7 +533,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
    */
   @Override
   public void writeStructBegin(TStruct struct) throws TException {
-    if (LOG.isDebugEnabled()) LOG.debug("writeStructBegin("+toString(struct)+")");
+    if (LOG.isDebugEnabled()) LOG.debug("writeStructBegin(" + toString(struct) + ")");
     currentProtocol.writeStructBegin(struct);
   }
 
@@ -589,7 +583,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
    */
   @Override
   public void writeMapBegin(TMap map) throws TException {
-    if (LOG.isDebugEnabled()) LOG.debug("writeMapBegin("+toString(map)+")");
+    if (LOG.isDebugEnabled()) LOG.debug("writeMapBegin(" + toString(map) + ")");
     currentProtocol.writeMapBegin(map);
   }
 
@@ -609,10 +603,9 @@ public class ParquetWriteProtocol extends ParquetProtocol {
    */
   @Override
   public void writeListBegin(TList list) throws TException {
-    if (LOG.isDebugEnabled()) LOG.debug("writeListBegin("+toString(list)+")");
+    if (LOG.isDebugEnabled()) LOG.debug("writeListBegin(" + toString(list) + ")");
     currentProtocol.writeListBegin(list);
   }
-
 
   /**
    * {@inheritDoc}
@@ -623,7 +616,6 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     LOG.debug("writeListEnd()");
     currentProtocol.writeListEnd();
   }
-
 
   /**
    * {@inheritDoc}
@@ -726,8 +718,7 @@ public class ParquetWriteProtocol extends ParquetProtocol {
   }
 
   private void writeBinaryToRecordConsumer(ByteBuffer buf) {
-    recordConsumer.addBinary(Binary.fromReusedByteArray(buf.array(), buf.position(),
-        buf.limit() - buf.position()));
+    recordConsumer.addBinary(Binary.fromReusedByteArray(buf.array(), buf.position(), buf.limit() - buf.position()));
   }
 
   private void writeStringToRecordConsumer(String str) {
@@ -738,41 +729,41 @@ public class ParquetWriteProtocol extends ParquetProtocol {
     TProtocol p;
     final ThriftType type = field.getType();
     switch (type.getType()) {
-    case STOP:
-    case VOID:
-    default:
-      throw new UnsupportedOperationException("can't convert type of " + field);
-    case BOOL:
-    case BYTE:
-    case DOUBLE:
-    case I16:
-    case I32:
-    case I64:
-    case STRING:
-      p = new PrimitiveWriteProtocol((PrimitiveColumnIO)columnIO, returnClause);
-      break;
-    case STRUCT:
-      p = new StructWriteProtocol((GroupColumnIO)columnIO, (StructType)type, returnClause);
-      break;
-    case MAP:
-      p = new MapWriteProtocol((GroupColumnIO)columnIO, (MapType)type, returnClause);
-      break;
-    case SET:
-      p = getListWriteProtocol((GroupColumnIO) columnIO, ((SetType) type).getValues(), returnClause);
-      break;
-    case LIST:
-      p = getListWriteProtocol((GroupColumnIO) columnIO, ((ListType) type).getValues(), returnClause);
-      break;
-    case ENUM:
-      p = new EnumWriteProtocol((PrimitiveColumnIO)columnIO, (EnumType)type, returnClause);
-      break;
+      case STOP:
+      case VOID:
+      default:
+        throw new UnsupportedOperationException("can't convert type of " + field);
+      case BOOL:
+      case BYTE:
+      case DOUBLE:
+      case I16:
+      case I32:
+      case I64:
+      case STRING:
+        p = new PrimitiveWriteProtocol((PrimitiveColumnIO) columnIO, returnClause);
+        break;
+      case STRUCT:
+        p = new StructWriteProtocol((GroupColumnIO) columnIO, (StructType) type, returnClause);
+        break;
+      case MAP:
+        p = new MapWriteProtocol((GroupColumnIO) columnIO, (MapType) type, returnClause);
+        break;
+      case SET:
+        p = getListWriteProtocol((GroupColumnIO) columnIO, ((SetType) type).getValues(), returnClause);
+        break;
+      case LIST:
+        p = getListWriteProtocol((GroupColumnIO) columnIO, ((ListType) type).getValues(), returnClause);
+        break;
+      case ENUM:
+        p = new EnumWriteProtocol((PrimitiveColumnIO) columnIO, (EnumType) type, returnClause);
+        break;
     }
     return p;
   }
 
   private TProtocol getListWriteProtocol(GroupColumnIO columnIO, ThriftField values, Events returnClause) {
-    return writeThreeLevelList ?
-      new ThreeLevelListWriteProtocol(columnIO, values, returnClause):
-      new TwoLevelListWriteProtocol(columnIO, values, returnClause);
+    return writeThreeLevelList
+        ? new ThreeLevelListWriteProtocol(columnIO, values, returnClause)
+        : new TwoLevelListWriteProtocol(columnIO, values, returnClause);
   }
 }

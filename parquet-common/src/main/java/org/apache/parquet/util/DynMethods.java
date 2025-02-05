@@ -19,15 +19,15 @@
 
 package org.apache.parquet.util;
 
-import org.apache.parquet.Preconditions;
+import static org.apache.parquet.Exceptions.throwIfInstance;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-
-import static org.apache.parquet.Exceptions.throwIfInstance;
+import org.apache.parquet.Preconditions;
 
 public class DynMethods {
 
@@ -46,8 +46,7 @@ public class DynMethods {
     UnboundMethod(Method method, String name) {
       this.method = method;
       this.name = name;
-      this.argLength = (method == null || method.isVarArgs()) ? -1 :
-          method.getParameterTypes().length;
+      this.argLength = (method == null || method.isVarArgs()) ? -1 : method.getParameterTypes().length;
     }
 
     @SuppressWarnings("unchecked")
@@ -84,11 +83,11 @@ public class DynMethods {
      * @throws IllegalArgumentException if the receiver's class is incompatible
      */
     public BoundMethod bind(Object receiver) {
-      Preconditions.checkState(!isStatic(),
-          "Cannot bind static method %s", method.toGenericString());
+      Preconditions.checkState(!isStatic(), "Cannot bind static method %s", method.toGenericString());
       Preconditions.checkArgument(
           method.getDeclaringClass().isAssignableFrom(receiver.getClass()),
-          "Cannot bind %s to instance of %s", method.toGenericString(), 
+          "Cannot bind %s to instance of %s",
+          method.toGenericString(),
           receiver.getClass());
 
       return new BoundMethod(this, receiver);
@@ -120,8 +119,7 @@ public class DynMethods {
     }
 
     public String toString() {
-      return "DynMethods.UnboundMethod(name=" + name +" method=" +
-          method.toGenericString() + ")";
+      return "DynMethods.UnboundMethod(name=" + name + " method=" + method.toGenericString() + ")";
     }
 
     /**
@@ -277,8 +275,7 @@ public class DynMethods {
       }
 
       try {
-        this.method = new UnboundMethod(
-            targetClass.getMethod(methodName, argClasses), name);
+        this.method = new UnboundMethod(targetClass.getMethod(methodName, argClasses), name);
       } catch (NoSuchMethodException e) {
         // not the right implementation
       }
@@ -487,7 +484,6 @@ public class DynMethods {
     public StaticMethod buildStatic() {
       return build().asStatic();
     }
-
   }
 
   private static class MakeAccessible implements PrivilegedAction<Void> {

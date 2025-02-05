@@ -20,7 +20,6 @@
 package org.apache.parquet.crypto.keytools;
 
 import java.util.Set;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
@@ -40,9 +39,9 @@ public interface FileKeyMaterialStore {
    * @param keyMaterial key material
    */
   public void addKeyMaterial(String keyIDInFile, String keyMaterial);
-  
+
   /**
-   * After key material was added for all keys in the given Parquet file, 
+   * After key material was added for all keys in the given Parquet file,
    * save material in persistent store.
    */
   public void saveMaterial();
@@ -55,7 +54,7 @@ public interface FileKeyMaterialStore {
   public String getKeyMaterial(String keyIDInFile);
 
   /**
-   * @return Set of all key IDs in this store (for the given Parquet file) 
+   * @return Set of all key IDs in this store (for the given Parquet file)
    */
   public Set<String> getKeyIDSet();
 

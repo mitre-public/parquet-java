@@ -19,7 +19,6 @@
 package org.apache.parquet.column.impl;
 
 import java.util.PrimitiveIterator;
-
 import org.apache.parquet.VersionParser.ParsedVersion;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.ColumnReader;
@@ -67,8 +66,12 @@ class SynchronizingColumnReader extends ColumnReaderBase {
   private long lastRowInPage;
   private int valuesReadFromPage;
 
-  SynchronizingColumnReader(ColumnDescriptor path, PageReader pageReader, PrimitiveConverter converter,
-      ParsedVersion writerVersion, PrimitiveIterator.OfLong rowIndexes) {
+  SynchronizingColumnReader(
+      ColumnDescriptor path,
+      PageReader pageReader,
+      PrimitiveConverter converter,
+      ParsedVersion writerVersion,
+      PrimitiveIterator.OfLong rowIndexes) {
     super(path, pageReader, converter, writerVersion);
     this.rowIndexes = rowIndexes;
     targetRow = Long.MIN_VALUE;
@@ -107,5 +110,4 @@ class SynchronizingColumnReader extends ColumnReaderBase {
     lastRowInPage = firstRowIndex + rowCount - 1;
     valuesReadFromPage = 0;
   }
-
 }

@@ -19,13 +19,12 @@
 
 package org.apache.parquet.hadoop.mapred;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.*;
 import org.apache.parquet.hadoop.ParquetOutputCommitter;
 import org.apache.parquet.hadoop.util.ContextUtil;
-
-import java.io.IOException;
 
 /**
  * Adapter for supporting ParquetOutputCommitter in mapred API

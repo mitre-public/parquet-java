@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.compress.CodecPool;
 import org.apache.hadoop.io.compress.CompressionCodec;
@@ -33,7 +32,6 @@ import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.io.compress.Compressor;
 import org.apache.hadoop.io.compress.Decompressor;
 import org.apache.hadoop.util.ReflectionUtils;
-
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.BytesInput;
 import org.apache.parquet.compression.CompressionCodecFactory;
@@ -42,11 +40,13 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 public class CodecFactory implements CompressionCodecFactory {
 
-  protected static final Map<String, CompressionCodec> CODEC_BY_NAME = Collections
-      .synchronizedMap(new HashMap<String, CompressionCodec>());
+  protected static final Map<String, CompressionCodec> CODEC_BY_NAME =
+      Collections.synchronizedMap(new HashMap<String, CompressionCodec>());
 
-  private final Map<CompressionCodecName, BytesCompressor> compressors = new HashMap<CompressionCodecName, BytesCompressor>();
-  private final Map<CompressionCodecName, BytesDecompressor> decompressors = new HashMap<CompressionCodecName, BytesDecompressor>();
+  private final Map<CompressionCodecName, BytesCompressor> compressors =
+      new HashMap<CompressionCodecName, BytesCompressor>();
+  private final Map<CompressionCodecName, BytesDecompressor> decompressors =
+      new HashMap<CompressionCodecName, BytesDecompressor>();
 
   protected final Configuration configuration;
   protected final int pageSize;
@@ -84,7 +84,8 @@ public class CodecFactory implements CompressionCodecFactory {
    *                 parameter will not impact the function of the factory.
    * @return a configured direct codec factory
    */
-  public static CodecFactory createDirectCodecFactory(Configuration config, ByteBufferAllocator allocator, int pageSize) {
+  public static CodecFactory createDirectCodecFactory(
+      Configuration config, ByteBufferAllocator allocator, int pageSize) {
     return new DirectCodecFactory(config, allocator, pageSize);
   }
 
@@ -111,7 +112,8 @@ public class CodecFactory implements CompressionCodecFactory {
         }
         InputStream is = codec.createInputStream(bytes.toInputStream(), decompressor);
 
-        // We need to explicitly close the ZstdDecompressorStream here to release the resources it holds to avoid
+        // We need to explicitly close the ZstdDecompressorStream here to release the resources it holds to
+        // avoid
         // off-heap memory fragmentation issue, see https://issues.apache.org/jira/browse/PARQUET-2160.
         // This change will load the decompressor stream into heap a little earlier, since the problem it solves
         // only happens in the ZSTD codec, so this modification is only made for ZSTD streams.
@@ -128,8 +130,10 @@ public class CodecFactory implements CompressionCodecFactory {
     }
 
     @Override
-    public void decompress(ByteBuffer input, int compressedSize, ByteBuffer output, int uncompressedSize) throws IOException {
-      ByteBuffer decompressed = decompress(BytesInput.from(input), uncompressedSize).toByteBuffer();
+    public void decompress(ByteBuffer input, int compressedSize, ByteBuffer output, int uncompressedSize)
+        throws IOException {
+      ByteBuffer decompressed =
+          decompress(BytesInput.from(input), uncompressedSize).toByteBuffer();
       output.put(decompressed);
     }
 
@@ -192,7 +196,6 @@ public class CodecFactory implements CompressionCodecFactory {
     public CompressionCodecName getCodecName() {
       return codecName;
     }
-
   }
 
   @Override
@@ -271,9 +274,11 @@ public class CodecFactory implements CompressionCodecFactory {
    * @deprecated will be removed in 2.0.0; use CompressionCodecFactory.BytesInputCompressor instead.
    */
   @Deprecated
-  public static abstract class BytesCompressor implements CompressionCodecFactory.BytesInputCompressor {
+  public abstract static class BytesCompressor implements CompressionCodecFactory.BytesInputCompressor {
     public abstract BytesInput compress(BytesInput bytes) throws IOException;
+
     public abstract CompressionCodecName getCodecName();
+
     public abstract void release();
   }
 
@@ -281,9 +286,12 @@ public class CodecFactory implements CompressionCodecFactory {
    * @deprecated will be removed in 2.0.0; use CompressionCodecFactory.BytesInputDecompressor instead.
    */
   @Deprecated
-  public static abstract class BytesDecompressor implements CompressionCodecFactory.BytesInputDecompressor {
+  public abstract static class BytesDecompressor implements CompressionCodecFactory.BytesInputDecompressor {
     public abstract BytesInput decompress(BytesInput bytes, int uncompressedSize) throws IOException;
-    public abstract void decompress(ByteBuffer input, int compressedSize, ByteBuffer output, int uncompressedSize) throws IOException;
+
+    public abstract void decompress(ByteBuffer input, int compressedSize, ByteBuffer output, int uncompressedSize)
+        throws IOException;
+
     public abstract void release();
   }
 }

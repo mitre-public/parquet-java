@@ -18,14 +18,6 @@
  */
 package org.apache.parquet.hadoop;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.inOrder;
 import static org.apache.parquet.column.Encoding.PLAIN;
 import static org.apache.parquet.column.Encoding.RLE;
 import static org.apache.parquet.format.converter.ParquetMetadataConverter.NO_FILTER;
@@ -37,22 +29,24 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.DOUBLE;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.FLOAT;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT64;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.inOrder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.parquet.column.ParquetProperties;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
-
 import org.apache.parquet.bytes.BytesInput;
+import org.apache.parquet.bytes.HeapByteBufferAllocator;
 import org.apache.parquet.bytes.LittleEndianDataInputStream;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.Encoding;
@@ -78,7 +72,10 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Types;
-import org.apache.parquet.bytes.HeapByteBufferAllocator;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 public class TestColumnChunkPageWriteStore {
 
@@ -148,7 +145,8 @@ public class TestColumnChunkPageWriteStore {
     int v = 3;
     BytesInput definitionLevels = BytesInput.fromInt(d);
     BytesInput repetitionLevels = BytesInput.fromInt(r);
-    Statistics<?> statistics = Statistics.getBuilderForReading(Types.required(PrimitiveTypeName.BINARY).named("test_binary"))
+    Statistics<?> statistics = Statistics.getBuilderForReading(
+            Types.required(PrimitiveTypeName.BINARY).named("test_binary"))
         .build();
     BytesInput data = BytesInput.fromInt(v);
     int rowCount = 5;
@@ -160,19 +158,27 @@ public class TestColumnChunkPageWriteStore {
 
     {
       OutputFileForTesting outputFile = new OutputFileForTesting(file, conf);
-      ParquetFileWriter writer = new ParquetFileWriter(outputFile, schema, Mode.CREATE,
-          ParquetWriter.DEFAULT_BLOCK_SIZE, ParquetWriter.MAX_PADDING_SIZE_DEFAULT);
+      ParquetFileWriter writer = new ParquetFileWriter(
+          outputFile,
+          schema,
+          Mode.CREATE,
+          ParquetWriter.DEFAULT_BLOCK_SIZE,
+          ParquetWriter.MAX_PADDING_SIZE_DEFAULT);
       writer.start();
       writer.startBlock(rowCount);
       pageOffset = outputFile.out().getPos();
       {
-        ColumnChunkPageWriteStore store = new ColumnChunkPageWriteStore(compressor(GZIP), schema,
-            new HeapByteBufferAllocator(), Integer.MAX_VALUE);
+        ColumnChunkPageWriteStore store = new ColumnChunkPageWriteStore(
+            compressor(GZIP), schema, new HeapByteBufferAllocator(), Integer.MAX_VALUE);
         PageWriter pageWriter = store.getPageWriter(col);
         pageWriter.writePageV2(
-            rowCount, nullCount, valueCount,
-            repetitionLevels, definitionLevels,
-            dataEncoding, data,
+            rowCount,
+            nullCount,
+            valueCount,
+            repetitionLevels,
+            definitionLevels,
+            dataEncoding,
+            data,
             statistics);
         store.flushToFileWriter(writer);
         pageSize = outputFile.out().getPos() - pageOffset;
@@ -187,7 +193,7 @@ public class TestColumnChunkPageWriteStore {
           conf, footer.getFileMetaData(), file, footer.getBlocks(), schema.getColumns());
       PageReadStore rowGroup = reader.readNextRowGroup();
       PageReader pageReader = rowGroup.getPageReader(col);
-      DataPageV2 page = (DataPageV2)pageReader.readPage();
+      DataPageV2 page = (DataPageV2) pageReader.readPage();
       assertEquals(rowCount, page.getRowCount());
       assertEquals(nullCount, page.getNullCount());
       assertEquals(valueCount, page.getValueCount());
@@ -199,9 +205,12 @@ public class TestColumnChunkPageWriteStore {
       // Checking column/offset indexes for the one page
       ColumnChunkMetaData column = footer.getBlocks().get(0).getColumns().get(0);
       ColumnIndex columnIndex = reader.readColumnIndex(column);
-      assertArrayEquals(statistics.getMinBytes(), columnIndex.getMinValues().get(0).array());
-      assertArrayEquals(statistics.getMaxBytes(), columnIndex.getMaxValues().get(0).array());
-      assertEquals(statistics.getNumNulls(), columnIndex.getNullCounts().get(0).longValue());
+      assertArrayEquals(
+          statistics.getMinBytes(), columnIndex.getMinValues().get(0).array());
+      assertArrayEquals(
+          statistics.getMaxBytes(), columnIndex.getMaxValues().get(0).array());
+      assertEquals(
+          statistics.getNumNulls(), columnIndex.getNullCounts().get(0).longValue());
       assertFalse(columnIndex.getNullPages().get(0));
       OffsetIndex offsetIndex = reader.readOffsetIndex(column);
       assertEquals(1, offsetIndex.getPageCount());
@@ -227,11 +236,17 @@ public class TestColumnChunkPageWriteStore {
     ParquetFileWriter mockFileWriter = Mockito.mock(ParquetFileWriter.class);
     InOrder inOrder = inOrder(mockFileWriter);
     MessageType schema = Types.buildMessage()
-        .required(BINARY).as(UTF8).named("a_string")
-        .required(INT32).named("an_int")
-        .required(INT64).named("a_long")
-        .required(FLOAT).named("a_float")
-        .required(DOUBLE).named("a_double")
+        .required(BINARY)
+        .as(UTF8)
+        .named("a_string")
+        .required(INT32)
+        .named("an_int")
+        .required(INT64)
+        .named("a_long")
+        .required(FLOAT)
+        .named("a_float")
+        .required(DOUBLE)
+        .named("a_double")
         .named("order_test");
 
     BytesInput fakeData = BytesInput.fromInt(34);
@@ -252,21 +267,22 @@ public class TestColumnChunkPageWriteStore {
     store.flushToFileWriter(mockFileWriter);
 
     for (ColumnDescriptor col : schema.getColumns()) {
-      inOrder.verify(mockFileWriter).writeColumnChunk(
-          eq(col),
-          eq((long) fakeCount),
-          eq(UNCOMPRESSED),
-          isNull(DictionaryPage.class),
-          any(),
-          eq(fakeData.size()),
-          eq(fakeData.size()),
-          eq(fakeStats),
-          same(ColumnIndexBuilder.getNoOpBuilder()), // Deprecated writePage -> no column index
-          same(OffsetIndexBuilder.getNoOpBuilder()), // Deprecated writePage -> no offset index
-          any(),
-          any(),
-          any(),
-          any());
+      inOrder.verify(mockFileWriter)
+          .writeColumnChunk(
+              eq(col),
+              eq((long) fakeCount),
+              eq(UNCOMPRESSED),
+              isNull(DictionaryPage.class),
+              any(),
+              eq(fakeData.size()),
+              eq(fakeData.size()),
+              eq(fakeStats),
+              same(ColumnIndexBuilder.getNoOpBuilder()), // Deprecated writePage -> no column index
+              same(OffsetIndexBuilder.getNoOpBuilder()), // Deprecated writePage -> no offset index
+              any(),
+              any(),
+              any(),
+              any());
     }
   }
 

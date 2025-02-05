@@ -32,7 +32,9 @@ interface GlobNode {
 
   static interface Visitor<T> {
     T visit(Atom atom);
+
     T visit(OneOf oneOf);
+
     T visit(GlobNodeSequence seq);
   }
 

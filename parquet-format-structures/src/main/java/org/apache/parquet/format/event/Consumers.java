@@ -25,17 +25,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.apache.parquet.format.event.Consumers.Consumer;
+import org.apache.parquet.format.event.TypedConsumer.ListConsumer;
+import org.apache.parquet.format.event.TypedConsumer.StructConsumer;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TException;
 import org.apache.thrift.TFieldIdEnum;
 import org.apache.thrift.protocol.TList;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolUtil;
-
-import org.apache.parquet.format.event.Consumers.Consumer;
-import org.apache.parquet.format.event.TypedConsumer.ListConsumer;
-import org.apache.parquet.format.event.TypedConsumer.StructConsumer;
 
 /**
  * Entry point for reading thrift in a streaming fashion
@@ -82,9 +80,8 @@ public class Consumers {
     }
 
     @Override
-    public void consumeField(
-        TProtocol protocol, EventBasedThriftReader reader,
-        short id, byte type) throws TException {
+    public void consumeField(TProtocol protocol, EventBasedThriftReader reader, short id, byte type)
+        throws TException {
       TypedConsumer delegate = contexts.get(id);
       if (delegate != null) {
         delegate.read(protocol, reader, type);
@@ -109,9 +106,11 @@ public class Consumers {
    * @param <T> the type of the list content
    * @return a ListConsumer that can be passed to the DelegatingFieldConsumer
    */
-  public static <T extends TBase<T,? extends TFieldIdEnum>> ListConsumer listOf(Class<T> c, final Consumer<List<T>> consumer) {
+  public static <T extends TBase<T, ? extends TFieldIdEnum>> ListConsumer listOf(
+      Class<T> c, final Consumer<List<T>> consumer) {
     class ListConsumer implements Consumer<T> {
       List<T> list;
+
       @Override
       public void consume(T t) {
         list.add(t);
@@ -120,8 +119,7 @@ public class Consumers {
     final ListConsumer co = new ListConsumer();
     return new DelegatingListElementsConsumer(struct(c, co)) {
       @Override
-      public void consumeList(TProtocol protocol,
-          EventBasedThriftReader reader, TList tList) throws TException {
+      public void consumeList(TProtocol protocol, EventBasedThriftReader reader, TList tList) throws TException {
         co.list = new ArrayList<T>();
         super.consumeList(protocol, reader, tList);
         consumer.consume(co.list);
@@ -138,7 +136,8 @@ public class Consumers {
     return new DelegatingListElementsConsumer(consumer);
   }
 
-  public static <T extends TBase<T,? extends TFieldIdEnum>> StructConsumer struct(final Class<T> c, final Consumer<T> consumer) {
+  public static <T extends TBase<T, ? extends TFieldIdEnum>> StructConsumer struct(
+      final Class<T> c, final Consumer<T> consumer) {
     return new TBaseStructConsumer<T>(c, consumer);
   }
 }
@@ -163,6 +162,7 @@ class DelegatingListElementsConsumer extends ListConsumer {
     elementConsumer.read(protocol, reader, elemType);
   }
 }
+
 class TBaseStructConsumer<T extends TBase<T, ? extends TFieldIdEnum>> extends StructConsumer {
 
   private final Class<T> c;
@@ -187,5 +187,4 @@ class TBaseStructConsumer<T extends TBase<T, ? extends TFieldIdEnum>> extends St
       throw new RuntimeException(c.getName(), e);
     }
   }
-
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,7 +20,6 @@ package org.apache.parquet.hadoop.metadata;
 
 import java.util.Arrays;
 import java.util.Set;
-
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
@@ -40,12 +39,13 @@ public class ColumnChunkProperties {
    *             instead.
    */
   @Deprecated
-  public static ColumnChunkProperties get(ColumnPath path, PrimitiveTypeName type, CompressionCodecName codec, Set<Encoding> encodings) {
+  public static ColumnChunkProperties get(
+      ColumnPath path, PrimitiveTypeName type, CompressionCodecName codec, Set<Encoding> encodings) {
     return get(path, new PrimitiveType(Type.Repetition.OPTIONAL, type, ""), codec, encodings);
   }
 
-  public static ColumnChunkProperties get(ColumnPath path, PrimitiveType type, CompressionCodecName codec,
-      Set<Encoding> encodings) {
+  public static ColumnChunkProperties get(
+      ColumnPath path, PrimitiveType type, CompressionCodecName codec, Set<Encoding> encodings) {
     return properties.canonicalize(new ColumnChunkProperties(codec, path, type, encodings));
   }
 
@@ -54,10 +54,8 @@ public class ColumnChunkProperties {
   private final PrimitiveType type;
   private final Set<Encoding> encodings;
 
-  private ColumnChunkProperties(CompressionCodecName codec,
-                                ColumnPath path,
-                                PrimitiveType type,
-                                Set<Encoding> encodings) {
+  private ColumnChunkProperties(
+      CompressionCodecName codec, ColumnPath path, PrimitiveType type, Set<Encoding> encodings) {
     super();
     this.codec = codec;
     this.path = path;
@@ -96,8 +94,11 @@ public class ColumnChunkProperties {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ColumnChunkProperties) {
-      ColumnChunkProperties other = (ColumnChunkProperties)obj;
-      return other.codec == codec && other.path.equals(path) && other.type.equals(type) && equals(other.encodings, encodings);
+      ColumnChunkProperties other = (ColumnChunkProperties) obj;
+      return other.codec == codec
+          && other.path.equals(path)
+          && other.type.equals(type)
+          && equals(other.encodings, encodings);
     }
     return false;
   }

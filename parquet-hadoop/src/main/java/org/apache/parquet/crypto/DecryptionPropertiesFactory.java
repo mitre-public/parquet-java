@@ -57,8 +57,8 @@ public interface DecryptionPropertiesFactory {
    * @throws BadConfigurationException if the instantiation of the configured class fails
    */
   static DecryptionPropertiesFactory loadFactory(Configuration conf) {
-    final Class<?> decryptionPropertiesFactoryClass = ConfigurationUtil.getClassFromConfig(conf,
-      CRYPTO_FACTORY_CLASS_PROPERTY_NAME, DecryptionPropertiesFactory.class);
+    final Class<?> decryptionPropertiesFactoryClass = ConfigurationUtil.getClassFromConfig(
+        conf, CRYPTO_FACTORY_CLASS_PROPERTY_NAME, DecryptionPropertiesFactory.class);
 
     if (null == decryptionPropertiesFactoryClass) {
       LOG.debug("DecryptionPropertiesFactory is not configured - name not found in hadoop config");
@@ -68,8 +68,9 @@ public interface DecryptionPropertiesFactory {
     try {
       return (DecryptionPropertiesFactory) decryptionPropertiesFactoryClass.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
-      throw new BadConfigurationException("could not instantiate decryptionPropertiesFactoryClass class: "
-        + decryptionPropertiesFactoryClass, e);
+      throw new BadConfigurationException(
+          "could not instantiate decryptionPropertiesFactoryClass class: " + decryptionPropertiesFactoryClass,
+          e);
     }
   }
 
@@ -84,5 +85,6 @@ public interface DecryptionPropertiesFactory {
    * are available for the file (not required for plaintext files. Or for plaintext columns in encrypted files with plaintext footer).
    * @throws ParquetCryptoRuntimeException if there is an exception while creating the object
    */
-  FileDecryptionProperties getFileDecryptionProperties(Configuration hadoopConfig, Path filePath) throws ParquetCryptoRuntimeException;
+  FileDecryptionProperties getFileDecryptionProperties(Configuration hadoopConfig, Path filePath)
+      throws ParquetCryptoRuntimeException;
 }

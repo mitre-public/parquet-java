@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -63,22 +63,33 @@ public interface FilterPredicate {
    */
   public static interface Visitor<R> {
     <T extends Comparable<T>> R visit(Eq<T> eq);
+
     <T extends Comparable<T>> R visit(NotEq<T> notEq);
+
     <T extends Comparable<T>> R visit(Lt<T> lt);
+
     <T extends Comparable<T>> R visit(LtEq<T> ltEq);
+
     <T extends Comparable<T>> R visit(Gt<T> gt);
+
     <T extends Comparable<T>> R visit(GtEq<T> gtEq);
+
     default <T extends Comparable<T>> R visit(In<T> in) {
       throw new UnsupportedOperationException("visit in is not supported.");
     }
+
     default <T extends Comparable<T>> R visit(NotIn<T> notIn) {
       throw new UnsupportedOperationException("visit NotIn is not supported.");
     }
+
     R visit(And and);
+
     R visit(Or or);
+
     R visit(Not not);
+
     <T extends Comparable<T>, U extends UserDefinedPredicate<T>> R visit(UserDefined<T, U> udp);
+
     <T extends Comparable<T>, U extends UserDefinedPredicate<T>> R visit(LogicalNotUserDefined<T, U> udp);
   }
-
 }

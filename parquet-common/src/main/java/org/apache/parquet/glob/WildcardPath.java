@@ -102,8 +102,7 @@ public class WildcardPath {
 
   @Override
   public String toString() {
-    return String.format("WildcardPath(parentGlobPath: '%s', pattern: '%s')",
-        parentGlobPath, originalPattern);
+    return String.format("WildcardPath(parentGlobPath: '%s', pattern: '%s')", parentGlobPath, originalPattern);
   }
 
   @Override

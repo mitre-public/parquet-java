@@ -18,6 +18,8 @@
  */
 package org.apache.parquet.io;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -25,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import org.apache.parquet.column.ColumnWriteStore;
 import org.apache.parquet.column.ColumnWriter;
 import org.apache.parquet.column.impl.ColumnReadStoreImpl;
@@ -45,9 +46,6 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
-
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +73,7 @@ public class MessageColumnIO extends GroupColumnIO {
     return super.getColumnNames();
   }
 
-  public <T> RecordReader<T> getRecordReader(PageReadStore columns,
-                                             RecordMaterializer<T> recordMaterializer) {
+  public <T> RecordReader<T> getRecordReader(PageReadStore columns, RecordMaterializer<T> recordMaterializer) {
     return getRecordReader(columns, recordMaterializer, FilterCompat.NOOP);
   }
 
@@ -89,15 +86,13 @@ public class MessageColumnIO extends GroupColumnIO {
    * @deprecated use getRecordReader(PageReadStore, RecordMaterializer, Filter)
    */
   @Deprecated
-  public <T> RecordReader<T> getRecordReader(PageReadStore columns,
-                                             RecordMaterializer<T> recordMaterializer,
-                                             UnboundRecordFilter filter) {
+  public <T> RecordReader<T> getRecordReader(
+      PageReadStore columns, RecordMaterializer<T> recordMaterializer, UnboundRecordFilter filter) {
     return getRecordReader(columns, recordMaterializer, FilterCompat.get(filter));
   }
 
-  public <T> RecordReader<T> getRecordReader(final PageReadStore columns,
-                                             final RecordMaterializer<T> recordMaterializer,
-                                             final Filter filter) {
+  public <T> RecordReader<T> getRecordReader(
+      final PageReadStore columns, final RecordMaterializer<T> recordMaterializer, final Filter filter) {
     Objects.requireNonNull(columns, "columns cannot be null");
     Objects.requireNonNull(recordMaterializer, "recordMaterializer cannot be null");
     Objects.requireNonNull(filter, "filter cannot be null");
@@ -111,19 +106,18 @@ public class MessageColumnIO extends GroupColumnIO {
       public RecordReader<T> visit(FilterPredicateCompat filterPredicateCompat) {
 
         FilterPredicate predicate = filterPredicateCompat.getFilterPredicate();
-        IncrementallyUpdatedFilterPredicateBuilder builder = new IncrementallyUpdatedFilterPredicateBuilder(leaves);
+        IncrementallyUpdatedFilterPredicateBuilder builder =
+            new IncrementallyUpdatedFilterPredicateBuilder(leaves);
         IncrementallyUpdatedFilterPredicate streamingPredicate = builder.build(predicate);
         RecordMaterializer<T> filteringRecordMaterializer = new FilteringRecordMaterializer<T>(
-            recordMaterializer,
-            leaves,
-            builder.getValueInspectorsByColumn(),
-            streamingPredicate);
+            recordMaterializer, leaves, builder.getValueInspectorsByColumn(), streamingPredicate);
 
         return new RecordReaderImplementation<>(
             MessageColumnIO.this,
             filteringRecordMaterializer,
             validating,
-            new ColumnReadStoreImpl(columns, filteringRecordMaterializer.getRootConverter(), getType(), createdBy));
+            new ColumnReadStoreImpl(
+                columns, filteringRecordMaterializer.getRootConverter(), getType(), createdBy));
       }
 
       @Override
@@ -134,8 +128,7 @@ public class MessageColumnIO extends GroupColumnIO {
             validating,
             new ColumnReadStoreImpl(columns, recordMaterializer.getRootConverter(), getType(), createdBy),
             unboundRecordFilterCompat.getUnboundRecordFilter(),
-            columns.getRowCount()
-        );
+            columns.getRowCount());
       }
 
       @Override
@@ -190,9 +183,7 @@ public class MessageColumnIO extends GroupColumnIO {
 
       @Override
       public String toString() {
-        return "VisitedIndex{" +
-            "visitedIndexes=" + visitedIndexes +
-            '}';
+        return "VisitedIndex{" + "visitedIndexes=" + visitedIndexes + '}';
       }
 
       public void reset(int fieldsCount) {
@@ -208,7 +199,7 @@ public class MessageColumnIO extends GroupColumnIO {
       }
     }
 
-    //track at each level of depth, which fields are written, so nulls can be inserted for the unwritten fields
+    // track at each level of depth, which fields are written, so nulls can be inserted for the unwritten fields
     private final FieldsMarker[] fieldsWritten;
     private final int[] r;
     private final ColumnWriter[] columnWriters;
@@ -218,7 +209,6 @@ public class MessageColumnIO extends GroupColumnIO {
      * Instead of using recursion calls, all the leaves can be called directly without traversing the sub tree of the group node
      */
     private Map<GroupColumnIO, List<ColumnWriter>> groupToLeafWriter = new HashMap<>();
-
 
     /*
      * Cache nulls for each group node. It only stores the repetition level, since the definition level
@@ -248,7 +238,8 @@ public class MessageColumnIO extends GroupColumnIO {
     public MessageColumnIORecordConsumer(ColumnWriteStore columns) {
       this.columns = columns;
       int maxDepth = 0;
-      this.columnWriters = new ColumnWriter[MessageColumnIO.this.getLeaves().size()];
+      this.columnWriters =
+          new ColumnWriter[MessageColumnIO.this.getLeaves().size()];
 
       for (PrimitiveColumnIO primitiveColumnIO : MessageColumnIO.this.getLeaves()) {
         ColumnWriter w = columns.getColumnWriter(primitiveColumnIO.getColumnDescriptor());
@@ -266,15 +257,17 @@ public class MessageColumnIO extends GroupColumnIO {
 
     private void printState() {
       if (DEBUG) {
-        log(currentLevel + ", " + fieldsWritten[currentLevel] + ": " + Arrays.toString(currentColumnIO.getFieldPath()) + " r:" + r[currentLevel]);
+        log(currentLevel + ", " + fieldsWritten[currentLevel] + ": "
+            + Arrays.toString(currentColumnIO.getFieldPath()) + " r:" + r[currentLevel]);
         if (r[currentLevel] > currentColumnIO.getRepetitionLevel()) {
           // sanity check
-          throw new InvalidRecordException(r[currentLevel] + "(r) > " + currentColumnIO.getRepetitionLevel() + " ( schema r)");
+          throw new InvalidRecordException(
+              r[currentLevel] + "(r) > " + currentColumnIO.getRepetitionLevel() + " ( schema r)");
         }
       }
     }
 
-    private void log(Object message, Object...parameters) {
+    private void log(Object message, Object... parameters) {
       if (DEBUG) {
         StringBuilder indent = new StringBuilder(currentLevel * 2);
         for (int i = 0; i < currentLevel; ++i) {
@@ -323,10 +316,11 @@ public class MessageColumnIO extends GroupColumnIO {
 
     @Override
     public void endField(String field, int index) {
-      if (DEBUG) log("endField({}, {})",field ,index);
+      if (DEBUG) log("endField({}, {})", field, index);
       currentColumnIO = currentColumnIO.getParent();
       if (emptyField) {
-        throw new ParquetEncodingException("empty fields are illegal, the field should be ommited completely instead");
+        throw new ParquetEncodingException(
+            "empty fields are illegal, the field should be ommited completely instead");
       }
       fieldsWritten[currentLevel].markWritten(index);
       r[currentLevel] = currentLevel == 0 ? 0 : r[currentLevel - 1];
@@ -340,10 +334,15 @@ public class MessageColumnIO extends GroupColumnIO {
           try {
             ColumnIO undefinedField = ((GroupColumnIO) currentColumnIO).getChild(i);
             int d = currentColumnIO.getDefinitionLevel();
-            if (DEBUG) log(Arrays.toString(undefinedField.getFieldPath()) + ".writeNull(" + r[currentLevel] + "," + d + ")");
+            if (DEBUG)
+              log(Arrays.toString(undefinedField.getFieldPath()) + ".writeNull(" + r[currentLevel] + ","
+                  + d + ")");
             writeNull(undefinedField, r[currentLevel], d);
           } catch (RuntimeException e) {
-            throw new ParquetEncodingException("error while writing nulls for fields of indexes " + i + " . current index: " + fieldsWritten[currentLevel], e);
+            throw new ParquetEncodingException(
+                "error while writing nulls for fields of indexes " + i + " . current index: "
+                    + fieldsWritten[currentLevel],
+                e);
           }
         }
       }
@@ -354,7 +353,8 @@ public class MessageColumnIO extends GroupColumnIO {
         columnWriters[((PrimitiveColumnIO) undefinedField).getId()].writeNull(r, d);
       } else {
         GroupColumnIO groupColumnIO = (GroupColumnIO) undefinedField;
-        // only cache the repetition level, the definition level should always be the definition level of the parent node
+        // only cache the repetition level, the definition level should always be the definition level of the
+        // parent node
         cacheNullForGroup(groupColumnIO, r);
       }
     }
@@ -370,12 +370,11 @@ public class MessageColumnIO extends GroupColumnIO {
 
     private void writeNullToLeaves(GroupColumnIO group) {
       IntArrayList nullCache = groupNullCache.get(group);
-      if (nullCache == null || nullCache.isEmpty())
-        return;
+      if (nullCache == null || nullCache.isEmpty()) return;
 
       int parentDefinitionLevel = group.getParent().getDefinitionLevel();
       for (ColumnWriter leafWriter : groupToLeafWriter.get(group)) {
-        for (IntIterator iter = nullCache.iterator(); iter.hasNext();) {
+        for (IntIterator iter = nullCache.iterator(); iter.hasNext(); ) {
           int repetitionLevel = iter.nextInt();
           leafWriter.writeNull(repetitionLevel, parentDefinitionLevel);
         }
@@ -411,16 +410,15 @@ public class MessageColumnIO extends GroupColumnIO {
       return nulls != null && !nulls.isEmpty();
     }
 
-
     private void flushCachedNulls(GroupColumnIO group) {
-      //flush children first
+      // flush children first
       for (int i = 0; i < group.getChildrenCount(); i++) {
         ColumnIO child = group.getChild(i);
         if (child instanceof GroupColumnIO) {
           flushCachedNulls((GroupColumnIO) child);
         }
       }
-      //then flush itself
+      // then flush itself
       writeNullToLeaves(group);
     }
 
@@ -498,7 +496,6 @@ public class MessageColumnIO extends GroupColumnIO {
       setRepetitionLevel();
       if (DEBUG) printState();
     }
-
 
     /**
      * Flush null for all groups

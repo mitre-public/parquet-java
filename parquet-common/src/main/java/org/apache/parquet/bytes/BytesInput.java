@@ -28,10 +28,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * A source of bytes capable of writing itself to an output.
@@ -41,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * subsequent BytesInput reads from the stream will be incorrect
  * if the previous has not been consumed.
  */
-abstract public class BytesInput {
+public abstract class BytesInput {
   private static final Logger LOG = LoggerFactory.getLogger(BytesInput.class);
   private static final EmptyBytesInput EMPTY_BYTES_INPUT = new EmptyBytesInput();
 
@@ -117,7 +115,7 @@ abstract public class BytesInput {
    */
   public static BytesInput from(byte[] in) {
     LOG.debug("BytesInput from array of {} bytes", in.length);
-    return new ByteArrayBytesInput(in, 0 , in.length);
+    return new ByteArrayBytesInput(in, 0, in.length);
   }
 
   public static BytesInput from(byte[] in, int offset, int length) {
@@ -207,7 +205,7 @@ abstract public class BytesInput {
    * @param out an output stream
    * @throws IOException if there is an exception writing
    */
-  abstract public void writeAllTo(OutputStream out) throws IOException;
+  public abstract void writeAllTo(OutputStream out) throws IOException;
 
   /**
    *
@@ -217,14 +215,15 @@ abstract public class BytesInput {
   public byte[] toByteArray() throws IOException {
     long size = size();
     if (size > Integer.MAX_VALUE) {
-      throw new IOException("Page size, " + size + ", is larger than allowed " + Integer.MAX_VALUE + "." +
-        " Usually caused by a Parquet writer writing too big column chunks on encountering highly skewed dataset." +
-        " Please set page.size.row.check.max to a lower value on the writer, default value is 10000." +
-        " You can try setting it to " + (10000 / (size / Integer.MAX_VALUE)) + " or lower.");
+      throw new IOException("Page size, " + size + ", is larger than allowed " + Integer.MAX_VALUE + "."
+          + " Usually caused by a Parquet writer writing too big column chunks on encountering highly skewed dataset."
+          + " Please set page.size.row.check.max to a lower value on the writer, default value is 10000."
+          + " You can try setting it to "
+          + (10000 / (size / Integer.MAX_VALUE)) + " or lower.");
     }
-    BAOS baos = new BAOS((int)size());
+    BAOS baos = new BAOS((int) size());
     this.writeAllTo(baos);
-    LOG.debug("converted {} to byteArray of {} bytes", size() , baos.size());
+    LOG.debug("converted {} to byteArray of {} bytes", size(), baos.size());
     return baos.getBuf();
   }
 
@@ -250,7 +249,7 @@ abstract public class BytesInput {
    *
    * @return the size in bytes that would be written
    */
-  abstract public long size();
+  public abstract long size();
 
   private static final class BAOS extends ByteArrayOutputStream {
     private BAOS(int size) {
@@ -291,7 +290,6 @@ abstract public class BytesInput {
     public long size() {
       return byteCount;
     }
-
   }
 
   private static class SequenceBytesIn extends BytesInput {
@@ -325,7 +323,6 @@ abstract public class BytesInput {
     public long size() {
       return size;
     }
-
   }
 
   private static class IntBytesInput extends BytesInput {
@@ -349,7 +346,6 @@ abstract public class BytesInput {
     public long size() {
       return 4;
     }
-
   }
 
   private static class UnsignedVarIntBytesInput extends BytesInput {
@@ -401,8 +397,7 @@ abstract public class BytesInput {
   private static class EmptyBytesInput extends BytesInput {
 
     @Override
-    public void writeAllTo(OutputStream out) throws IOException {
-    }
+    public void writeAllTo(OutputStream out) throws IOException {}
 
     @Override
     public long size() {
@@ -412,7 +407,6 @@ abstract public class BytesInput {
     public ByteBuffer toByteBuffer() throws IOException {
       return ByteBuffer.allocate(0);
     }
-
   }
 
   private static class CapacityBAOSBytesInput extends BytesInput {
@@ -432,7 +426,6 @@ abstract public class BytesInput {
     public long size() {
       return arrayOut.size();
     }
-
   }
 
   private static class BAOSBytesInput extends BytesInput {
@@ -452,7 +445,6 @@ abstract public class BytesInput {
     public long size() {
       return arrayOut.size();
     }
-
   }
 
   private static class ByteArrayBytesInput extends BytesInput {
@@ -480,7 +472,6 @@ abstract public class BytesInput {
     public long size() {
       return length;
     }
-
   }
 
   private static class BufferListBytesInput extends BytesInput {

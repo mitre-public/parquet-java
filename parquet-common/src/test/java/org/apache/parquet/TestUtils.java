@@ -19,8 +19,8 @@
 
 package org.apache.parquet;
 
-import org.junit.Assert;
 import java.util.concurrent.Callable;
+import org.junit.Assert;
 
 public class TestUtils {
 
@@ -30,12 +30,10 @@ public class TestUtils {
    * @param expected An Exception class that the Runnable should throw
    * @param callable A Callable that is expected to throw the exception
    */
-  public static void assertThrows(
-      String message, Class<? extends Exception> expected, Callable callable) {
+  public static void assertThrows(String message, Class<? extends Exception> expected, Callable callable) {
     try {
       callable.call();
-      Assert.fail("No exception was thrown (" + message + "), expected: " +
-          expected.getName());
+      Assert.fail("No exception was thrown (" + message + "), expected: " + expected.getName());
     } catch (Exception actual) {
       try {
         Assert.assertEquals(message, expected, actual.getClass());
@@ -52,12 +50,10 @@ public class TestUtils {
    * @param expected An Exception class that the Runnable should throw
    * @param runnable A Runnable that is expected to throw the runtime exception
    */
-  public static void assertThrows(
-      String message, Class<? extends Exception> expected, Runnable runnable) {
+  public static void assertThrows(String message, Class<? extends Exception> expected, Runnable runnable) {
     try {
       runnable.run();
-      Assert.fail("No exception was thrown (" + message + "), expected: " +
-          expected.getName());
+      Assert.fail("No exception was thrown (" + message + "), expected: " + expected.getName());
     } catch (Exception actual) {
       try {
         Assert.assertEquals(message, expected, actual.getClass());

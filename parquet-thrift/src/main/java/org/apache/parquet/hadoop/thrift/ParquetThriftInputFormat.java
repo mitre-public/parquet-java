@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,7 +20,6 @@ package org.apache.parquet.hadoop.thrift;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
-
 import org.apache.parquet.hadoop.ParquetInputFormat;
 
 public class ParquetThriftInputFormat<T> extends ParquetInputFormat<T> {
@@ -60,7 +59,7 @@ public class ParquetThriftInputFormat<T> extends ParquetInputFormat<T> {
    * @param klass a thrift class
    * @param <T> the Java type of records the configured ReadSupport will produce
    */
-  public static  <T> void setThriftClass(Configuration conf, Class<T> klass) {
+  public static <T> void setThriftClass(Configuration conf, Class<T> klass) {
     conf.set(ThriftReadSupport.THRIFT_READ_CLASS_KEY, klass.getName());
   }
 }

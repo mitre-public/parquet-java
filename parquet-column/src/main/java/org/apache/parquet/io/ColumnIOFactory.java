@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,7 +20,6 @@ package org.apache.parquet.io;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
@@ -43,8 +42,9 @@ public class ColumnIOFactory {
     private int currentRequestedIndex;
     private Type currentRequestedType;
     private boolean strictTypeChecking;
-    
-    private ColumnIOCreatorVisitor(boolean validating, MessageType requestedSchema, String createdBy, boolean strictTypeChecking) {
+
+    private ColumnIOCreatorVisitor(
+        boolean validating, MessageType requestedSchema, String createdBy, boolean strictTypeChecking) {
       this.validating = validating;
       this.requestedSchema = requestedSchema;
       this.createdBy = createdBy;
@@ -88,23 +88,27 @@ public class ColumnIOFactory {
 
     @Override
     public void visit(PrimitiveType primitiveType) {
-      if (!currentRequestedType.isPrimitive() || 
-              (this.strictTypeChecking && currentRequestedType.asPrimitiveType().getPrimitiveTypeName() != primitiveType.getPrimitiveTypeName())) {
+      if (!currentRequestedType.isPrimitive()
+          || (this.strictTypeChecking
+              && currentRequestedType.asPrimitiveType().getPrimitiveTypeName()
+                  != primitiveType.getPrimitiveTypeName())) {
         incompatibleSchema(primitiveType, currentRequestedType);
       }
-      PrimitiveColumnIO newIO = new PrimitiveColumnIO(primitiveType, current, currentRequestedIndex, leaves.size());
+      PrimitiveColumnIO newIO =
+          new PrimitiveColumnIO(primitiveType, current, currentRequestedIndex, leaves.size());
       current.add(newIO);
       leaves.add(newIO);
     }
 
     private void incompatibleSchema(Type fileType, Type requestedType) {
-      throw new ParquetDecodingException("The requested schema is not compatible with the file schema. incompatible types: " + requestedType + " != " + fileType);
+      throw new ParquetDecodingException(
+          "The requested schema is not compatible with the file schema. incompatible types: " + requestedType
+              + " != " + fileType);
     }
 
     public MessageColumnIO getColumnIO() {
       return columnIO;
     }
-
   }
 
   private final String createdBy;
@@ -150,7 +154,7 @@ public class ColumnIOFactory {
   public MessageColumnIO getColumnIO(MessageType requestedSchema, MessageType fileSchema) {
     return getColumnIO(requestedSchema, fileSchema, true);
   }
-  
+
   /**
    * @param requestedSchema the requestedSchema we want to read/write
    * @param fileSchema the file schema (when reading it can be different from the requested schema)
@@ -170,5 +174,4 @@ public class ColumnIOFactory {
   public MessageColumnIO getColumnIO(MessageType schema) {
     return this.getColumnIO(schema, schema);
   }
-
 }

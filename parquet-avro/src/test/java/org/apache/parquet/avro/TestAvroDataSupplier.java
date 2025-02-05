@@ -36,7 +36,8 @@ public class TestAvroDataSupplier {
   public void testSetSupplierMethod() {
     Configuration conf = new Configuration(false);
     AvroReadSupport.setAvroDataSupplier(conf, GenericDataSupplier.class);
-    Assert.assertEquals("Should contain the class name",
+    Assert.assertEquals(
+        "Should contain the class name",
         "org.apache.parquet.avro.TestAvroDataSupplier$GenericDataSupplier",
         conf.get(AvroReadSupport.AVRO_DATA_SUPPLIER));
   }

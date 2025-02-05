@@ -22,7 +22,6 @@ import static java.util.Arrays.asList;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.apache.parquet.schema.GroupType;
@@ -68,9 +67,13 @@ public class SchemaMapping {
    */
   public interface TypeMappingVisitor<T> {
     T visit(PrimitiveTypeMapping primitiveTypeMapping);
+
     T visit(StructTypeMapping structTypeMapping);
+
     T visit(UnionTypeMapping unionTypeMapping);
+
     T visit(ListTypeMapping listTypeMapping);
+
     T visit(RepeatedTypeMapping repeatedTypeMapping);
   }
 
@@ -103,7 +106,6 @@ public class SchemaMapping {
     }
 
     public abstract <T> T accept(TypeMappingVisitor<T> visitor);
-
   }
 
   /**

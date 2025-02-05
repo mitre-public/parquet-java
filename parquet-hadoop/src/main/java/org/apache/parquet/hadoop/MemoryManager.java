@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,14 +18,13 @@
  */
 package org.apache.parquet.hadoop;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements a memory manager that keeps a global context of how many Parquet
@@ -47,8 +46,7 @@ public class MemoryManager {
 
   private final long totalMemoryPool;
   private final long minMemoryAllocation;
-  private final Map<InternalParquetRecordWriter<?>, Long> writerList =
-      new HashMap<>();
+  private final Map<InternalParquetRecordWriter<?>, Long> writerList = new HashMap<>();
   private final Map<String, Runnable> callBacks = new HashMap<String, Runnable>();
   private double scale = 1.0;
 
@@ -57,15 +55,16 @@ public class MemoryManager {
 
     memoryPoolRatio = ratio;
     minMemoryAllocation = minAllocation;
-    totalMemoryPool = Math.round((double) ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax
-        () * ratio);
+    totalMemoryPool = Math.round((double)
+            ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax()
+        * ratio);
     LOG.debug("Allocated total memory pool is: {}", totalMemoryPool);
   }
 
   private void checkRatio(float ratio) {
     if (ratio <= 0 || ratio > 1) {
-      throw new IllegalArgumentException("The configured memory pool ratio " + ratio + " is " +
-          "not between 0 and 1.");
+      throw new IllegalArgumentException(
+          "The configured memory pool ratio " + ratio + " is " + "not between 0 and 1.");
     }
   }
 
@@ -79,9 +78,10 @@ public class MemoryManager {
     if (oldValue == null) {
       writerList.put(writer, allocation);
     } else {
-      throw new IllegalArgumentException("[BUG] The Parquet Memory Manager should not add an " +
-          "instance of InternalParquetRecordWriter more than once. The Manager already contains " +
-          "the writer: " + writer);
+      throw new IllegalArgumentException("[BUG] The Parquet Memory Manager should not add an "
+          + "instance of InternalParquetRecordWriter more than once. The Manager already contains "
+          + "the writer: "
+          + writer);
     }
     updateAllocation();
   }
@@ -110,9 +110,9 @@ public class MemoryManager {
     } else {
       scale = (double) totalMemoryPool / totalAllocations;
       LOG.warn(String.format(
-          "Total allocation exceeds %.2f%% (%,d bytes) of heap memory\n" +
-          "Scaling row group sizes to %.2f%% for %d writers",
-          100*memoryPoolRatio, totalMemoryPool, 100*scale, writerList.size()));
+          "Total allocation exceeds %.2f%% (%,d bytes) of heap memory\n"
+              + "Scaling row group sizes to %.2f%% for %d writers",
+          100 * memoryPoolRatio, totalMemoryPool, 100 * scale, writerList.size()));
       for (Runnable callBack : callBacks.values()) {
         // we do not really want to start a new thread here.
         callBack.run();
@@ -124,19 +124,16 @@ public class MemoryManager {
       maxColCount = Math.max(w.getSchema().getColumns().size(), maxColCount);
     }
 
-    for (Map.Entry<InternalParquetRecordWriter<?>, Long> entry : writerList
-        .entrySet()) {
+    for (Map.Entry<InternalParquetRecordWriter<?>, Long> entry : writerList.entrySet()) {
       long newSize = (long) Math.floor(entry.getValue() * scale);
-      if (scale < 1.0 && minMemoryAllocation > 0
-          && newSize < minMemoryAllocation) {
+      if (scale < 1.0 && minMemoryAllocation > 0 && newSize < minMemoryAllocation) {
         throw new ParquetMemoryManagerRuntimeException(String.format(
-            "New Memory allocation %d bytes"
-                + " is smaller than the minimum allocation size of %d bytes.",
+            "New Memory allocation %d bytes" + " is smaller than the minimum allocation size of %d bytes.",
             newSize, minMemoryAllocation));
       }
       entry.getKey().setRowGroupSizeThreshold(newSize);
-      LOG.debug(String.format("Adjust block size from %,d to %,d for writer: %s",
-            entry.getValue(), newSize, entry.getKey()));
+      LOG.debug(String.format(
+          "Adjust block size from %,d to %,d for writer: %s", entry.getValue(), newSize, entry.getKey()));
     }
   }
 
@@ -174,8 +171,8 @@ public class MemoryManager {
     Objects.requireNonNull(callBack, "callBack cannot be null");
 
     if (callBacks.containsKey(callBackName)) {
-      throw new IllegalArgumentException("The callBackName " + callBackName +
-          " is duplicated and has been registered already.");
+      throw new IllegalArgumentException(
+          "The callBackName " + callBackName + " is duplicated and has been registered already.");
     } else {
       callBacks.put(callBackName, callBack);
     }

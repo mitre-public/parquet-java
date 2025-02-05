@@ -18,13 +18,11 @@
  */
 package org.apache.parquet.cli.commands;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 
 public class ScanCommandTest extends ParquetFileTest {
   @Test

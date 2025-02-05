@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -29,9 +29,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.parquet.OutputStreamCloseException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,8 +105,7 @@ public class CapacityByteArrayOutputStream extends OutputStream {
       int minSlabSize, int maxCapacityHint, int targetNumSlabs, ByteBufferAllocator allocator) {
 
     return new CapacityByteArrayOutputStream(
-        initialSlabSizeHeuristic(minSlabSize, maxCapacityHint, targetNumSlabs),
-        maxCapacityHint, allocator);
+        initialSlabSizeHeuristic(minSlabSize, maxCapacityHint, targetNumSlabs), maxCapacityHint, allocator);
   }
 
   /**
@@ -150,7 +147,11 @@ public class CapacityByteArrayOutputStream extends OutputStream {
   public CapacityByteArrayOutputStream(int initialSlabSize, int maxCapacityHint, ByteBufferAllocator allocator) {
     checkArgument(initialSlabSize > 0, "initialSlabSize must be > 0");
     checkArgument(maxCapacityHint > 0, "maxCapacityHint must be > 0");
-    checkArgument(maxCapacityHint >= initialSlabSize, "maxCapacityHint can't be less than initialSlabSize %s %s", initialSlabSize, maxCapacityHint);
+    checkArgument(
+        maxCapacityHint >= initialSlabSize,
+        "maxCapacityHint can't be less than initialSlabSize %s %s",
+        initialSlabSize,
+        maxCapacityHint);
     this.initialSlabSize = initialSlabSize;
     this.maxCapacityHint = maxCapacityHint;
     this.allocator = allocator;
@@ -164,7 +165,7 @@ public class CapacityByteArrayOutputStream extends OutputStream {
   private void addSlab(int minimumSize) {
     int nextSlabSize;
 
-    // check for overflow 
+    // check for overflow
     try {
       Math.addExact(bytesUsed, minimumSize);
     } catch (ArithmeticException e) {
@@ -209,10 +210,9 @@ public class CapacityByteArrayOutputStream extends OutputStream {
 
   @Override
   public void write(byte b[], int off, int len) {
-    if ((off < 0) || (off > b.length) || (len < 0) ||
-        ((off + len) - b.length > 0)) {
-      throw new IndexOutOfBoundsException(
-          String.format("Given byte array of size %d, with requested length(%d) and offset(%d)", b.length, len, off));
+    if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0)) {
+      throw new IndexOutOfBoundsException(String.format(
+          "Given byte array of size %d, with requested length(%d) and offset(%d)", b.length, len, off));
     }
     if (len >= currentSlab.remaining()) {
       final int length1 = currentSlab.remaining();
@@ -316,7 +316,7 @@ public class CapacityByteArrayOutputStream extends OutputStream {
       ByteBuffer slab = slabs.get(i);
       if (index < seen + slab.limit()) {
         // ok found index
-        slab.put((int)(index-seen), value);
+        slab.put((int) (index - seen), value);
         break;
       }
       seen += slab.limit();
@@ -345,7 +345,7 @@ public class CapacityByteArrayOutputStream extends OutputStream {
     }
     try {
       super.close();
-    }catch(IOException e){
+    } catch (IOException e) {
       throw new OutputStreamCloseException(e);
     }
   }

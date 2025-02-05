@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,9 +19,7 @@
 package org.apache.parquet.hadoop.api;
 
 import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
@@ -31,12 +29,12 @@ import org.apache.parquet.schema.MessageTypeParser;
  *
  * @param <T> the type of the materialized record
  */
-abstract public class ReadSupport<T> {
+public abstract class ReadSupport<T> {
 
   /**
    * configuration key for a parquet read projection schema
    */
-	public static final String PARQUET_READ_SCHEMA = "parquet.read.schema";
+  public static final String PARQUET_READ_SCHEMA = "parquet.read.schema";
 
   /**
    * attempts to validate and construct a {@link MessageType} from a read projection schema
@@ -46,8 +44,7 @@ abstract public class ReadSupport<T> {
    * @return the typed schema that should be used to read
    */
   public static MessageType getSchemaForRead(MessageType fileMessageType, String partialReadSchemaString) {
-    if (partialReadSchemaString == null)
-      return fileMessageType;
+    if (partialReadSchemaString == null) return fileMessageType;
     MessageType requestedMessageType = MessageTypeParser.parseMessageType(partialReadSchemaString);
     return getSchemaForRead(fileMessageType, requestedMessageType);
   }
@@ -68,10 +65,7 @@ abstract public class ReadSupport<T> {
    * @deprecated override {@link ReadSupport#init(InitContext)} instead
    */
   @Deprecated
-  public ReadContext init(
-          Configuration configuration,
-          Map<String, String> keyValueMetaData,
-          MessageType fileSchema) {
+  public ReadContext init(Configuration configuration, Map<String, String> keyValueMetaData, MessageType fileSchema) {
     throw new UnsupportedOperationException("Override init(InitContext)");
   }
 
@@ -95,11 +89,11 @@ abstract public class ReadSupport<T> {
    * @param readContext      returned by the init method
    * @return the recordMaterializer that will materialize the records
    */
-  abstract public RecordMaterializer<T> prepareForRead(
-          Configuration configuration,
-          Map<String, String> keyValueMetaData,
-          MessageType fileSchema,
-          ReadContext readContext);
+  public abstract RecordMaterializer<T> prepareForRead(
+      Configuration configuration,
+      Map<String, String> keyValueMetaData,
+      MessageType fileSchema,
+      ReadContext readContext);
 
   /**
    * information to read the file

@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,8 +17,8 @@
  * under the License.
  */
 package org.apache.parquet.thrift;
-import java.util.*;
 
+import java.util.*;
 import org.apache.parquet.hadoop.BadConfigurationException;
 import org.apache.parquet.thrift.struct.ThriftType;
 import org.apache.parquet.thrift.struct.ThriftType.StructType;
@@ -86,8 +86,7 @@ public class ThriftMetaData {
    * @param extraMetaData  extraMetaData field of the parquet footer
    * @return the ThriftMetaData used to write a data file
    */
-  public static ThriftMetaData fromExtraMetaData(
-      Map<String, String> extraMetaData) {
+  public static ThriftMetaData fromExtraMetaData(Map<String, String> extraMetaData) {
     final String thriftClassName = extraMetaData.get(THRIFT_CLASS);
     final String thriftDescriptorString = extraMetaData.get(THRIFT_DESCRIPTOR);
     if (thriftClassName == null || thriftDescriptorString == null) {
@@ -115,7 +114,7 @@ public class ThriftMetaData {
 
   private static StructType parseDescriptor(String json) {
     try {
-      return (StructType)ThriftType.fromJSON(json);
+      return (StructType) ThriftType.fromJSON(json);
     } catch (RuntimeException e) {
       throw new BadConfigurationException("Could not read the thrift descriptor " + json, e);
     }

@@ -18,63 +18,67 @@
  */
 package org.apache.parquet.schema;
 
-import org.junit.Test;
-
-import java.util.concurrent.Callable;
-
 import static org.apache.parquet.schema.OriginalType.UTF8;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.BINARY;
 import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
 import static org.apache.parquet.schema.Type.Repetition.REPEATED;
 
+import java.util.concurrent.Callable;
+import org.junit.Test;
+
 public class TestTypeUtil {
   @Test
   public void testWriteCheckMessageType() {
     TypeUtil.checkValidWriteSchema(Types.buildMessage()
-        .required(INT32).named("a")
-        .optional(BINARY).as(UTF8).named("b")
+        .required(INT32)
+        .named("a")
+        .optional(BINARY)
+        .as(UTF8)
+        .named("b")
         .named("valid_schema"));
 
-    TestTypeBuilders.assertThrows("Should complain about empty MessageType",
-        InvalidSchemaException.class,
-      (Callable<Void>) () -> {
-        TypeUtil.checkValidWriteSchema(new MessageType("invalid_schema"));
-        return null;
-      });
+    TestTypeBuilders.assertThrows(
+        "Should complain about empty MessageType", InvalidSchemaException.class, (Callable<Void>) () -> {
+          TypeUtil.checkValidWriteSchema(new MessageType("invalid_schema"));
+          return null;
+        });
   }
 
   @Test
   public void testWriteCheckGroupType() {
     TypeUtil.checkValidWriteSchema(Types.repeatedGroup()
-        .required(INT32).named("a")
-        .optional(BINARY).as(UTF8).named("b")
+        .required(INT32)
+        .named("a")
+        .optional(BINARY)
+        .as(UTF8)
+        .named("b")
         .named("valid_group"));
 
-    TestTypeBuilders.assertThrows("Should complain about empty GroupType",
-        InvalidSchemaException.class,
-      (Callable<Void>) () -> {
-        TypeUtil.checkValidWriteSchema(
-            new GroupType(REPEATED, "invalid_group"));
-        return null;
-      });
+    TestTypeBuilders.assertThrows(
+        "Should complain about empty GroupType", InvalidSchemaException.class, (Callable<Void>) () -> {
+          TypeUtil.checkValidWriteSchema(new GroupType(REPEATED, "invalid_group"));
+          return null;
+        });
   }
 
   @Test
   public void testWriteCheckNestedGroupType() {
     TypeUtil.checkValidWriteSchema(Types.buildMessage()
         .repeatedGroup()
-            .required(INT32).named("a")
-            .optional(BINARY).as(UTF8).named("b")
-            .named("valid_group")
+        .required(INT32)
+        .named("a")
+        .optional(BINARY)
+        .as(UTF8)
+        .named("b")
+        .named("valid_group")
         .named("valid_message"));
 
-    TestTypeBuilders.assertThrows("Should complain about empty GroupType",
-        InvalidSchemaException.class,
-      (Callable<Void>) () -> {
-        TypeUtil.checkValidWriteSchema(Types.buildMessage()
-            .addField(new GroupType(REPEATED, "invalid_group"))
-            .named("invalid_message"));
-        return null;
-      });
+    TestTypeBuilders.assertThrows(
+        "Should complain about empty GroupType", InvalidSchemaException.class, (Callable<Void>) () -> {
+          TypeUtil.checkValidWriteSchema(Types.buildMessage()
+              .addField(new GroupType(REPEATED, "invalid_group"))
+              .named("invalid_message"));
+          return null;
+        });
   }
 }

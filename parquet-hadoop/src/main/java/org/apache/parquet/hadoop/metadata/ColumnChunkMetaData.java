@@ -25,7 +25,6 @@ import static org.apache.parquet.format.Util.readColumnMetaData;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Set;
-
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.column.EncodingStats;
 import org.apache.parquet.column.statistics.BooleanStatistics;
@@ -46,7 +45,7 @@ import org.apache.yetus.audience.InterfaceAudience.Private;
 /**
  * Column meta data for a block stored in the file footer and passed in the InputSplit
  */
-abstract public class ColumnChunkMetaData {
+public abstract class ColumnChunkMetaData {
   protected int rowGroupOrdinal = -1;
 
   @Deprecated
@@ -61,8 +60,17 @@ abstract public class ColumnChunkMetaData {
       long totalSize,
       long totalUncompressedSize) {
     return get(
-        path, type, codec, null, encodings, new BooleanStatistics(), firstDataPage,
-        dictionaryPageOffset, valueCount, totalSize, totalUncompressedSize);
+        path,
+        type,
+        codec,
+        null,
+        encodings,
+        new BooleanStatistics(),
+        firstDataPage,
+        dictionaryPageOffset,
+        valueCount,
+        totalSize,
+        totalUncompressedSize);
   }
 
   @Deprecated
@@ -78,8 +86,17 @@ abstract public class ColumnChunkMetaData {
       long totalSize,
       long totalUncompressedSize) {
     return get(
-        path, type, codec, null, encodings, statistics, firstDataPage, dictionaryPageOffset,
-        valueCount, totalSize, totalUncompressedSize);
+        path,
+        type,
+        codec,
+        null,
+        encodings,
+        statistics,
+        firstDataPage,
+        dictionaryPageOffset,
+        valueCount,
+        totalSize,
+        totalUncompressedSize);
   }
 
   /**
@@ -113,8 +130,18 @@ abstract public class ColumnChunkMetaData {
       long totalSize,
       long totalUncompressedSize) {
 
-    return get(path, Types.optional(type).named("fake_type"), codec, encodingStats, encodings, statistics,
-        firstDataPage, dictionaryPageOffset, valueCount, totalSize, totalUncompressedSize);
+    return get(
+        path,
+        Types.optional(type).named("fake_type"),
+        codec,
+        encodingStats,
+        encodings,
+        statistics,
+        firstDataPage,
+        dictionaryPageOffset,
+        valueCount,
+        totalSize,
+        totalUncompressedSize);
   }
 
   public static ColumnChunkMetaData get(
@@ -137,8 +164,11 @@ abstract public class ColumnChunkMetaData {
         && positiveLongFitsInAnInt(totalSize)
         && positiveLongFitsInAnInt(totalUncompressedSize)) {
       return new IntColumnChunkMetaData(
-          path, type, codec,
-          encodingStats, encodings,
+          path,
+          type,
+          codec,
+          encodingStats,
+          encodings,
           statistics,
           firstDataPage,
           dictionaryPageOffset,
@@ -147,8 +177,11 @@ abstract public class ColumnChunkMetaData {
           totalUncompressedSize);
     } else {
       return new LongColumnChunkMetaData(
-          path, type, codec,
-          encodingStats, encodings,
+          path,
+          type,
+          codec,
+          encodingStats,
+          encodings,
           statistics,
           firstDataPage,
           dictionaryPageOffset,
@@ -158,19 +191,35 @@ abstract public class ColumnChunkMetaData {
     }
   }
 
-  // In sensitive columns, the ColumnMetaData structure is encrypted (with column-specific keys), making the fields like Statistics invisible.
+  // In sensitive columns, the ColumnMetaData structure is encrypted (with column-specific keys), making the fields
+  // like Statistics invisible.
   // Decryption is not performed pro-actively, due to performance and authorization reasons.
-  // This method creates an a shell ColumnChunkMetaData object that keeps the encrypted metadata and the decryption tools.
+  // This method creates an a shell ColumnChunkMetaData object that keeps the encrypted metadata and the decryption
+  // tools.
   // These tools will activated later - when/if the column is projected.
-  public static ColumnChunkMetaData getWithEncryptedMetadata(ParquetMetadataConverter parquetMetadataConverter, ColumnPath path,
-      PrimitiveType type, byte[] encryptedMetadata, byte[] columnKeyMetadata,
-      InternalFileDecryptor fileDecryptor, int rowGroupOrdinal, int columnOrdinal,
+  public static ColumnChunkMetaData getWithEncryptedMetadata(
+      ParquetMetadataConverter parquetMetadataConverter,
+      ColumnPath path,
+      PrimitiveType type,
+      byte[] encryptedMetadata,
+      byte[] columnKeyMetadata,
+      InternalFileDecryptor fileDecryptor,
+      int rowGroupOrdinal,
+      int columnOrdinal,
       String createdBy) {
-    return new EncryptedColumnChunkMetaData(parquetMetadataConverter, path, type, encryptedMetadata, columnKeyMetadata,
-        fileDecryptor, rowGroupOrdinal, columnOrdinal, createdBy);
+    return new EncryptedColumnChunkMetaData(
+        parquetMetadataConverter,
+        path,
+        type,
+        encryptedMetadata,
+        columnKeyMetadata,
+        fileDecryptor,
+        rowGroupOrdinal,
+        columnOrdinal,
+        createdBy);
   }
 
-  public void setRowGroupOrdinal (int rowGroupOrdinal) {
+  public void setRowGroupOrdinal(int rowGroupOrdinal) {
     this.rowGroupOrdinal = rowGroupOrdinal;
   }
 
@@ -259,33 +308,33 @@ abstract public class ColumnChunkMetaData {
   /**
    * @return start of the column data offset
    */
-  abstract public long getFirstDataPageOffset();
+  public abstract long getFirstDataPageOffset();
 
   /**
    * @return the location of the dictionary page if any; {@code 0} is returned if there is no dictionary page. Check
    *         {@link #hasDictionaryPage()} to validate.
    */
-  abstract public long getDictionaryPageOffset();
+  public abstract long getDictionaryPageOffset();
 
   /**
    * @return count of values in this block of the column
    */
-  abstract public long getValueCount();
+  public abstract long getValueCount();
 
   /**
    * @return the totalUncompressedSize
    */
-  abstract public long getTotalUncompressedSize();
+  public abstract long getTotalUncompressedSize();
 
   /**
    * @return the totalSize
    */
-  abstract public long getTotalSize();
+  public abstract long getTotalSize();
 
   /**
    * @return the stats for this column
    */
-  abstract public Statistics getStatistics();
+  public abstract Statistics getStatistics();
 
   /**
    * @return the reference to the column index
@@ -431,7 +480,7 @@ class IntColumnChunkMetaData extends ColumnChunkMetaData {
     if (!ColumnChunkMetaData.positiveLongFitsInAnInt(value)) {
       throw new IllegalArgumentException("value should be positive and fit in an int: " + value);
     }
-    return (int)(value + Integer.MIN_VALUE);
+    return (int) (value + Integer.MIN_VALUE);
   }
 
   /**
@@ -440,7 +489,7 @@ class IntColumnChunkMetaData extends ColumnChunkMetaData {
    * @return
    */
   private long intToPositiveLong(int value) {
-    return (long)value - Integer.MIN_VALUE;
+    return (long) value - Integer.MIN_VALUE;
   }
 
   /**
@@ -482,7 +531,7 @@ class IntColumnChunkMetaData extends ColumnChunkMetaData {
    * @return the stats for this column
    */
   public Statistics getStatistics() {
-   return statistics;
+    return statistics;
   }
 }
 
@@ -567,7 +616,7 @@ class LongColumnChunkMetaData extends ColumnChunkMetaData {
    * @return the stats for this column
    */
   public Statistics getStatistics() {
-   return statistics;
+    return statistics;
   }
 }
 
@@ -585,9 +634,16 @@ class EncryptedColumnChunkMetaData extends ColumnChunkMetaData {
   private boolean decrypted;
   private ColumnChunkMetaData shadowColumnChunkMetaData;
 
-  EncryptedColumnChunkMetaData(ParquetMetadataConverter parquetMetadataConverter, ColumnPath path, PrimitiveType type,
-      byte[] encryptedMetadata, byte[] columnKeyMetadata,
-      InternalFileDecryptor fileDecryptor, int rowGroupOrdinal, int columnOrdinal, String createdBy) {
+  EncryptedColumnChunkMetaData(
+      ParquetMetadataConverter parquetMetadataConverter,
+      ColumnPath path,
+      PrimitiveType type,
+      byte[] encryptedMetadata,
+      byte[] columnKeyMetadata,
+      InternalFileDecryptor fileDecryptor,
+      int rowGroupOrdinal,
+      int columnOrdinal,
+      String createdBy) {
     super((EncodingStats) null, (ColumnChunkProperties) null);
     this.parquetMetadataConverter = parquetMetadataConverter;
     this.path = path;
@@ -611,20 +667,22 @@ class EncryptedColumnChunkMetaData extends ColumnChunkMetaData {
     }
 
     // Decrypt the ColumnMetaData
-    InternalColumnDecryptionSetup columnDecryptionSetup = fileDecryptor.setColumnCryptoMetadata(path, true, false,
-        columnKeyMetadata, columnOrdinal);
+    InternalColumnDecryptionSetup columnDecryptionSetup =
+        fileDecryptor.setColumnCryptoMetadata(path, true, false, columnKeyMetadata, columnOrdinal);
 
     ColumnMetaData metaData;
     ByteArrayInputStream tempInputStream = new ByteArrayInputStream(encryptedMetadata);
-    byte[] columnMetaDataAAD = AesCipher.createModuleAAD(fileDecryptor.getFileAAD(), ModuleType.ColumnMetaData,
-        rowGroupOrdinal, columnOrdinal, -1);
+    byte[] columnMetaDataAAD = AesCipher.createModuleAAD(
+        fileDecryptor.getFileAAD(), ModuleType.ColumnMetaData, rowGroupOrdinal, columnOrdinal, -1);
     try {
-      metaData = readColumnMetaData(tempInputStream, columnDecryptionSetup.getMetaDataDecryptor(), columnMetaDataAAD);
+      metaData = readColumnMetaData(
+          tempInputStream, columnDecryptionSetup.getMetaDataDecryptor(), columnMetaDataAAD);
     } catch (IOException e) {
       throw new ParquetCryptoRuntimeException(path + ". Failed to decrypt column metadata", e);
     }
     decrypted = true;
-    shadowColumnChunkMetaData = parquetMetadataConverter.buildColumnChunkMetaData(metaData, path, primitiveType, createdBy);
+    shadowColumnChunkMetaData =
+        parquetMetadataConverter.buildColumnChunkMetaData(metaData, path, primitiveType, createdBy);
     this.encodingStats = shadowColumnChunkMetaData.encodingStats;
     this.properties = shadowColumnChunkMetaData.properties;
     if (metaData.isSetBloom_filter_offset()) {

@@ -85,7 +85,7 @@
     <pig.version>0.16.0</pig.version>
     <pig.classifier>h2</pig.classifier>
     <thrift-maven-plugin.version>0.10.0</thrift-maven-plugin.version>
-    <thrift.version>0.21.0</thrift.version>
+    <thrift.version>0.16.0</thrift.version>
     <format.thrift.version>${thrift.version}</format.thrift.version>
     <fastutil.version>8.5.13</fastutil.version>
     <semver.api.version>0.9.33</semver.api.version>
@@ -97,6 +97,7 @@
     <powermock.version>2.0.9</powermock.version>
     <net.openhft.version>0.26ea0</net.openhft.version>
     <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+    <yetus.audience-annotations.version>0.13.0</yetus.audience-annotations.version>
 
     <!-- parquet-cli dependencies -->
     <opencsv.version>2.3</opencsv.version>
@@ -558,6 +559,7 @@
             <excludeModules>
               <!-- Excluding the following modules because they are not part of the parquet public API -->
               <excludeModule>parquet-benchmarks</excludeModule>
+              <excludeModule>parquet-column</excludeModule>
               <excludeModule>parquet-cli</excludeModule>
               <excludeModule>parquet-tools-deprecated</excludeModule>
               <excludeModule>parquet-format-structures</excludeModule>

@@ -18,12 +18,11 @@
  */
 package org.apache.parquet.cli.commands;
 
-import org.junit.Before;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import org.junit.Before;
 
 public abstract class CSVFileTest extends FileTest {
 
@@ -40,12 +39,9 @@ public abstract class CSVFileTest extends FileTest {
   private void createTestCSVFile() throws IOException {
     File file = csvFile();
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-      writer.write(String.format("%s,%s,%s\n",
-        INT32_FIELD, INT64_FIELD, BINARY_FIELD));
-      writer.write(String.format("%d,%d,\"%s\"\n",
-        Integer.MIN_VALUE, Long.MIN_VALUE, COLORS[0]));
-      writer.write(String.format("%d,%d,\"%s\"\n",
-        Integer.MAX_VALUE, Long.MAX_VALUE, COLORS[1]));
+      writer.write(String.format("%s,%s,%s\n", INT32_FIELD, INT64_FIELD, BINARY_FIELD));
+      writer.write(String.format("%d,%d,\"%s\"\n", Integer.MIN_VALUE, Long.MIN_VALUE, COLORS[0]));
+      writer.write(String.format("%d,%d,\"%s\"\n", Integer.MAX_VALUE, Long.MAX_VALUE, COLORS[1]));
     }
   }
 }

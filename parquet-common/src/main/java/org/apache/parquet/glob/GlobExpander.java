@@ -21,7 +21,6 @@ package org.apache.parquet.glob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.parquet.glob.GlobNode.Atom;
 import org.apache.parquet.glob.GlobNode.GlobNodeSequence;
 import org.apache.parquet.glob.GlobNode.OneOf;
@@ -30,7 +29,7 @@ import org.apache.parquet.glob.GlobNode.OneOf;
  * Implementation of {@link org.apache.parquet.Strings#expandGlob(String)}
  */
 public final class GlobExpander {
-  private GlobExpander()  { }
+  private GlobExpander() {}
 
   /**
    * Expands a string with braces ("{}") into all of its possible permutations.
@@ -58,7 +57,7 @@ public final class GlobExpander {
    * Transforms a tree of {@link GlobNode} into a list of all the strings that satisfy
    * this tree.
    */
-  private final static class GlobExpanderImpl implements GlobNode.Visitor<List<String>> {
+  private static final class GlobExpanderImpl implements GlobNode.Visitor<List<String>> {
     private static final GlobExpanderImpl INSTANCE = new GlobExpanderImpl();
 
     private GlobExpanderImpl() {}

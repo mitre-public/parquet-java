@@ -48,8 +48,7 @@ public class RecordException extends RuntimeException {
       for (int i = 0; i < args.length; i += 1) {
         argStrings[i] = String.valueOf(args[i]);
       }
-      throw new RecordException(
-          String.format(String.valueOf(message), (Object[]) argStrings));
+      throw new RecordException(String.format(String.valueOf(message), (Object[]) argStrings));
     }
   }
 }

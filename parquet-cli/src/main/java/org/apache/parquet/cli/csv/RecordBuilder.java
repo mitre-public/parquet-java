@@ -19,14 +19,14 @@
 
 package org.apache.parquet.cli.csv;
 
-import org.apache.parquet.cli.util.RecordException;
-import org.apache.parquet.cli.util.Schemas;
+import java.util.List;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.reflect.ReflectData;
-import java.util.List;
+import org.apache.parquet.cli.util.RecordException;
+import org.apache.parquet.cli.util.Schemas;
 
 class RecordBuilder<E> {
   private final Schema schema;
@@ -94,8 +94,7 @@ class RecordBuilder<E> {
   private void fillIndexed(IndexedRecord record, String[] data) {
     for (int i = 0; i < indexes.length; i += 1) {
       int index = indexes[i];
-      record.put(i,
-          makeValue(index < data.length ? data[index] : null, fields[i]));
+      record.put(i, makeValue(index < data.length ? data[index] : null, fields[i]));
     }
   }
 
@@ -119,16 +118,13 @@ class RecordBuilder<E> {
       }
     } catch (RecordException e) {
       // add the field name to the error message
-      throw new RecordException(String.format(
-          "Cannot convert field %s", field.name()), e);
+      throw new RecordException(String.format("Cannot convert field %s", field.name()), e);
     } catch (NumberFormatException e) {
-      throw new RecordException(String.format(
-          "Field %s: value not a %s: '%s'",
-          field.name(), field.schema(), string), e);
+      throw new RecordException(
+          String.format("Field %s: value not a %s: '%s'", field.name(), field.schema(), string), e);
     } catch (AvroRuntimeException e) {
-      throw new RecordException(String.format(
-          "Field %s: cannot make %s value: '%s'",
-          field.name(), field.schema(), string), e);
+      throw new RecordException(
+          String.format("Field %s: cannot make %s value: '%s'", field.name(), field.schema(), string), e);
     }
   }
 
@@ -185,8 +181,7 @@ class RecordBuilder<E> {
           return null;
         default:
           // FIXED, BYTES, MAP, ARRAY, RECORD are not supported
-          throw new RecordException(
-              "Unsupported field type:" + schema.getType());
+          throw new RecordException("Unsupported field type:" + schema.getType());
       }
     } catch (NumberFormatException e) {
       // empty string is considered null for numeric types

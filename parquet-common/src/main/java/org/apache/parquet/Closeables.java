@@ -20,7 +20,6 @@ package org.apache.parquet;
 
 import java.io.Closeable;
 import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public final class Closeables {
-  private Closeables() { }
+  private Closeables() {}
 
   private static final Logger LOG = LoggerFactory.getLogger(Closeables.class);
 
@@ -40,7 +39,9 @@ public final class Closeables {
    * @throws IOException if c.close() throws an IOException.
    */
   public static void close(Closeable c) throws IOException {
-    if (c == null) { return; }
+    if (c == null) {
+      return;
+    }
     c.close();
   }
 
@@ -50,7 +51,9 @@ public final class Closeables {
    * @param c can be null
    */
   public static void closeAndSwallowIOExceptions(Closeable c) {
-    if (c == null) { return; }
+    if (c == null) {
+      return;
+    }
     try {
       c.close();
     } catch (IOException e) {

@@ -19,7 +19,6 @@
 package org.apache.parquet.thrift;
 
 import java.util.Objects;
-
 import org.apache.parquet.ShouldNeverHappenException;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.thrift.projection.FieldsPath;
@@ -42,15 +41,18 @@ public interface ConvertedField {
   FieldsPath path();
 
   boolean isKeep();
+
   Keep asKeep();
 
   boolean isDrop();
+
   Drop asDrop();
 
   boolean isSentinelUnion();
+
   SentinelUnion asSentinelUnion();
 
-  static abstract class ConvertedFieldBase implements ConvertedField {
+  abstract static class ConvertedFieldBase implements ConvertedField {
     private final FieldsPath path;
 
     protected ConvertedFieldBase(FieldsPath path) {
@@ -166,4 +168,3 @@ public interface ConvertedField {
     }
   }
 }
-

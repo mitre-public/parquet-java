@@ -28,4 +28,3 @@ public interface BloomFilterWriter {
    */
   void writeBloomFilter(BloomFilter bloomFilter);
 }
-

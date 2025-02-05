@@ -19,6 +19,7 @@
 package org.apache.parquet.avro;
 
 import com.google.common.io.Resources;
+import java.io.IOException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
@@ -29,14 +30,13 @@ import org.apache.parquet.schema.PrimitiveType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 public class TestAvroWriteSupport {
 
   @Test
   public void testInitConfiguration() throws IOException {
     final String listField = "NullableList";
-    Schema schema = new Schema.Parser().parse(Resources.getResource("list_with_nulls.avsc").openStream());
+    Schema schema = new Schema.Parser()
+        .parse(Resources.getResource("list_with_nulls.avsc").openStream());
     AvroWriteSupport<GenericRecord> awsWithConfigSpecificBehavior = new AvroWriteSupport<>();
     Configuration configuration = new Configuration();
     AvroWriteSupport.setSchema(configuration, schema);
@@ -46,7 +46,8 @@ public class TestAvroWriteSupport {
     int idx = actual.getFieldIndex(listField);
     ColumnDescriptor columnDescriptor = actual.getColumns().get(idx);
     PrimitiveType primitiveType = columnDescriptor.getPrimitiveType();
-    Assert.assertEquals("Confirm that old list type was not used", AvroWriteSupport.LIST_ELEMENT_NAME, primitiveType.getName());
+    Assert.assertEquals(
+        "Confirm that old list type was not used", AvroWriteSupport.LIST_ELEMENT_NAME, primitiveType.getName());
     // Default configuration
     configuration = new Configuration();
     AvroWriteSupport.setSchema(configuration, schema);

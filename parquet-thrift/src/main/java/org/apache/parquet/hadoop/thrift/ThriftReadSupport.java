@@ -22,12 +22,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.thrift.TBase;
-import org.apache.thrift.protocol.TProtocol;
-
 import org.apache.parquet.Strings;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
@@ -43,6 +39,8 @@ import org.apache.parquet.thrift.projection.StrictFieldProjectionFilter;
 import org.apache.parquet.thrift.projection.ThriftProjectionException;
 import org.apache.parquet.thrift.projection.deprecated.DeprecatedFieldProjectionFilter;
 import org.apache.parquet.thrift.struct.ThriftType.StructType;
+import org.apache.thrift.TBase;
+import org.apache.thrift.protocol.TProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,8 +81,7 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
    * @deprecated use {@link #setRecordConverterClass(Configuration, Class)} below
    */
   @Deprecated
-  public static void setRecordConverterClass(JobConf conf,
-      Class<?> klass) {
+  public static void setRecordConverterClass(JobConf conf, Class<?> klass) {
     setRecordConverterClass((Configuration) conf, klass);
   }
 
@@ -96,8 +93,7 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
    * @param conf a configuration
    * @param klass a thrift class
    */
-  public static void setRecordConverterClass(Configuration conf,
-                                             Class<?> klass) {
+  public static void setRecordConverterClass(Configuration conf, Class<?> klass) {
     conf.set(RECORD_CONVERTER_CLASS_KEY, klass.getName());
   }
 
@@ -118,21 +114,21 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
       return null;
     }
 
-    if(!Strings.isNullOrEmpty(deprecated) && !Strings.isNullOrEmpty(strict)) {
-      throw new ThriftProjectionException(
-          "You cannot provide both "
-              + THRIFT_COLUMN_FILTER_KEY
-              + " and "
-              + STRICT_THRIFT_COLUMN_FILTER_KEY
-              +"! "
-              + THRIFT_COLUMN_FILTER_KEY
-              + " is deprecated."
-      );
+    if (!Strings.isNullOrEmpty(deprecated) && !Strings.isNullOrEmpty(strict)) {
+      throw new ThriftProjectionException("You cannot provide both "
+          + THRIFT_COLUMN_FILTER_KEY
+          + " and "
+          + STRICT_THRIFT_COLUMN_FILTER_KEY
+          + "! "
+          + THRIFT_COLUMN_FILTER_KEY
+          + " is deprecated.");
     }
 
     if (!Strings.isNullOrEmpty(deprecated)) {
-      LOG.warn("Using {} is deprecated. Please see the docs for {}!",
-          THRIFT_COLUMN_FILTER_KEY, STRICT_THRIFT_COLUMN_FILTER_KEY);
+      LOG.warn(
+          "Using {} is deprecated. Please see the docs for {}!",
+          THRIFT_COLUMN_FILTER_KEY,
+          STRICT_THRIFT_COLUMN_FILTER_KEY);
       return new DeprecatedFieldProjectionFilter(deprecated);
     }
 
@@ -143,8 +139,7 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
    * used from hadoop
    * the configuration must contain a "parquet.thrift.read.class" setting
    */
-  public ThriftReadSupport() {
-  }
+  public ThriftReadSupport() {}
 
   /**
    * @param thriftClass the thrift class used to deserialize the records
@@ -163,19 +158,19 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     FieldProjectionFilter projectionFilter = getFieldProjectionFilter(configuration);
 
     if (partialSchemaString != null && projectionFilter != null) {
-      throw new ThriftProjectionException(
-          String.format("You cannot provide both a partial schema and field projection filter."
-                  + "Only one of (%s, %s, %s) should be set.",
-              PARQUET_READ_SCHEMA, STRICT_THRIFT_COLUMN_FILTER_KEY, THRIFT_COLUMN_FILTER_KEY));
+      throw new ThriftProjectionException(String.format(
+          "You cannot provide both a partial schema and field projection filter."
+              + "Only one of (%s, %s, %s) should be set.",
+          PARQUET_READ_SCHEMA, STRICT_THRIFT_COLUMN_FILTER_KEY, THRIFT_COLUMN_FILTER_KEY));
     }
 
-    //set requestedProjections only when it's specified
+    // set requestedProjections only when it's specified
     if (partialSchemaString != null) {
       requestedProjection = getSchemaForRead(fileMessageType, partialSchemaString);
     } else if (projectionFilter != null) {
       try {
         initThriftClassFromMultipleFiles(context.getKeyValueMetadata(), configuration);
-        requestedProjection =  getProjectedSchema(configuration, projectionFilter);
+        requestedProjection = getProjectedSchema(configuration, projectionFilter);
       } catch (ClassNotFoundException e) {
         throw new ThriftProjectionException("can not find thriftClass from configuration", e);
       }
@@ -186,22 +181,21 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
   }
 
   @SuppressWarnings("unchecked")
-  protected MessageType getProjectedSchema(Configuration configuration, FieldProjectionFilter
-      fieldProjectionFilter) {
+  protected MessageType getProjectedSchema(Configuration configuration, FieldProjectionFilter fieldProjectionFilter) {
     return new ThriftSchemaConverter(configuration, fieldProjectionFilter)
-        .convert((Class<TBase<?, ?>>)thriftClass);
+        .convert((Class<TBase<?, ?>>) thriftClass);
   }
 
   @Deprecated
   @SuppressWarnings("unchecked")
-  protected MessageType getProjectedSchema(FieldProjectionFilter
-    fieldProjectionFilter) {
+  protected MessageType getProjectedSchema(FieldProjectionFilter fieldProjectionFilter) {
     return new ThriftSchemaConverter(new Configuration(), fieldProjectionFilter)
-      .convert((Class<TBase<?, ?>>)thriftClass);
+        .convert((Class<TBase<?, ?>>) thriftClass);
   }
 
   @SuppressWarnings("unchecked")
-  private void initThriftClassFromMultipleFiles(Map<String, Set<String>> fileMetadata, Configuration conf) throws ClassNotFoundException {
+  private void initThriftClassFromMultipleFiles(Map<String, Set<String>> fileMetadata, Configuration conf)
+      throws ClassNotFoundException {
     if (thriftClass != null) {
       return;
     }
@@ -209,11 +203,13 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     if (className == null) {
       Set<String> names = ThriftMetaData.getThriftClassNames(fileMetadata);
       if (names == null || names.size() != 1) {
-        throw new ParquetDecodingException("Could not read file as the Thrift class is not provided and could not be resolved from the file: " + names);
+        throw new ParquetDecodingException(
+            "Could not read file as the Thrift class is not provided and could not be resolved from the file: "
+                + names);
       }
       className = names.iterator().next();
     }
-    thriftClass = (Class<T>)Class.forName(className);
+    thriftClass = (Class<T>) Class.forName(className);
   }
 
   @SuppressWarnings("unchecked")
@@ -224,17 +220,20 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     String className = conf.get(THRIFT_READ_CLASS_KEY, null);
     if (className == null) {
       if (metadata == null) {
-        throw new ParquetDecodingException("Could not read file as the Thrift class is not provided and could not be resolved from the file");
+        throw new ParquetDecodingException(
+            "Could not read file as the Thrift class is not provided and could not be resolved from the file");
       }
-      thriftClass = (Class<T>)metadata.getThriftClass();
+      thriftClass = (Class<T>) metadata.getThriftClass();
     } else {
-      thriftClass = (Class<T>)Class.forName(className);
+      thriftClass = (Class<T>) Class.forName(className);
     }
   }
 
   @Override
-  public RecordMaterializer<T> prepareForRead(Configuration configuration,
-      Map<String, String> keyValueMetaData, MessageType fileSchema,
+  public RecordMaterializer<T> prepareForRead(
+      Configuration configuration,
+      Map<String, String> keyValueMetaData,
+      MessageType fileSchema,
       org.apache.parquet.hadoop.api.ReadSupport.ReadContext readContext) {
     ThriftMetaData thriftMetaData = ThriftMetaData.fromExtraMetaData(keyValueMetaData);
     try {
@@ -249,15 +248,21 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     }
 
     String converterClassName = configuration.get(RECORD_CONVERTER_CLASS_KEY, RECORD_CONVERTER_DEFAULT);
-    return getRecordConverterInstance(converterClassName, thriftClass,
-        readContext.getRequestedSchema(), thriftMetaData.getDescriptor(),
+    return getRecordConverterInstance(
+        converterClassName,
+        thriftClass,
+        readContext.getRequestedSchema(),
+        thriftMetaData.getDescriptor(),
         configuration);
   }
 
   @SuppressWarnings("unchecked")
   private static <T> ThriftRecordConverter<T> getRecordConverterInstance(
-      String converterClassName, Class<T> thriftClass,
-      MessageType requestedSchema, StructType descriptor, Configuration conf) {
+      String converterClassName,
+      Class<T> thriftClass,
+      MessageType requestedSchema,
+      StructType descriptor,
+      Configuration conf) {
     Class<ThriftRecordConverter<T>> converterClass;
     try {
       converterClass = (Class<ThriftRecordConverter<T>>) Class.forName(converterClassName);
@@ -268,8 +273,8 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     try {
       // first try the new version that accepts a Configuration
       try {
-        Constructor<ThriftRecordConverter<T>> constructor =
-            converterClass.getConstructor(Class.class, MessageType.class, StructType.class, Configuration.class);
+        Constructor<ThriftRecordConverter<T>> constructor = converterClass.getConstructor(
+            Class.class, MessageType.class, StructType.class, Configuration.class);
         return constructor.newInstance(thriftClass, requestedSchema, descriptor, conf);
       } catch (IllegalAccessException | NoSuchMethodException e) {
         // try the other constructor pattern
@@ -281,7 +286,8 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
     } catch (InstantiationException | InvocationTargetException e) {
       throw new RuntimeException("Failed to construct Thrift converter class: " + converterClassName, e);
     } catch (IllegalAccessException e) {
-      throw new RuntimeException("Cannot access constructor for Thrift converter class: " + converterClassName, e);
+      throw new RuntimeException(
+          "Cannot access constructor for Thrift converter class: " + converterClassName, e);
     } catch (NoSuchMethodException e) {
       throw new RuntimeException("Cannot find constructor for Thrift converter class: " + converterClassName, e);
     }

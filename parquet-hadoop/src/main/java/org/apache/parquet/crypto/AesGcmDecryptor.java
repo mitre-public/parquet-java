@@ -19,17 +19,15 @@
 
 package org.apache.parquet.crypto;
 
-import javax.crypto.AEADBadTagException;
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-
-import org.apache.parquet.format.BlockCipher;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import javax.crypto.AEADBadTagException;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import org.apache.parquet.format.BlockCipher;
 
-public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor{
+public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor {
 
   AesGcmDecryptor(byte[] keyBytes) {
     super(AesMode.GCM, keyBytes);
@@ -42,14 +40,14 @@ public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor{
   }
 
   @Override
-  public byte[] decrypt(byte[] lengthAndCiphertext, byte[] AAD)  {
+  public byte[] decrypt(byte[] lengthAndCiphertext, byte[] AAD) {
     int cipherTextOffset = SIZE_LENGTH;
     int cipherTextLength = lengthAndCiphertext.length - SIZE_LENGTH;
 
     return decrypt(lengthAndCiphertext, cipherTextOffset, cipherTextLength, AAD);
   }
 
-  public byte[] decrypt(byte[] ciphertext, int cipherTextOffset, int cipherTextLength, byte[] AAD) { 
+  public byte[] decrypt(byte[] ciphertext, int cipherTextOffset, int cipherTextLength, byte[] AAD) {
 
     int plainTextLength = cipherTextLength - GCM_TAG_LENGTH - NONCE_LENGTH;
     if (plainTextLength < 1) {
@@ -69,7 +67,7 @@ public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor{
       if (null != AAD) cipher.updateAAD(AAD);
 
       cipher.doFinal(ciphertext, inputOffset, inputLength, plainText, outputOffset);
-    }  catch (AEADBadTagException e) {
+    } catch (AEADBadTagException e) {
       throw new TagVerificationException("GCM tag check failed", e);
     } catch (GeneralSecurityException e) {
       throw new ParquetCryptoRuntimeException("Failed to decrypt", e);
@@ -92,11 +90,10 @@ public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor{
       gotBytes += n;
     }
 
-    final int ciphertextLength =
-        ((lengthBuffer[3] & 0xff) << 24) |
-        ((lengthBuffer[2] & 0xff) << 16) |
-        ((lengthBuffer[1] & 0xff) << 8)  |
-        ((lengthBuffer[0] & 0xff));
+    final int ciphertextLength = ((lengthBuffer[3] & 0xff) << 24)
+        | ((lengthBuffer[2] & 0xff) << 16)
+        | ((lengthBuffer[1] & 0xff) << 8)
+        | ((lengthBuffer[0] & 0xff));
 
     if (ciphertextLength < 1) {
       throw new IOException("Wrong length of encrypted metadata: " + ciphertextLength);
@@ -108,7 +105,8 @@ public class AesGcmDecryptor extends AesCipher implements BlockCipher.Decryptor{
     while (gotBytes < ciphertextLength) {
       int n = from.read(ciphertextBuffer, gotBytes, ciphertextLength - gotBytes);
       if (n <= 0) {
-        throw new IOException("Tried to read " + ciphertextLength + " bytes, but only got " + gotBytes + " bytes.");
+        throw new IOException(
+            "Tried to read " + ciphertextLength + " bytes, but only got " + gotBytes + " bytes.");
       }
       gotBytes += n;
     }

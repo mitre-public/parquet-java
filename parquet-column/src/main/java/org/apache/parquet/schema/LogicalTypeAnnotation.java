@@ -18,17 +18,6 @@
  */
 package org.apache.parquet.schema;
 
-import org.apache.parquet.Preconditions;
-import org.apache.yetus.audience.InterfaceAudience;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Supplier;
-
 import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static org.apache.parquet.schema.ColumnOrder.ColumnOrderName.TYPE_DEFINED_ORDER;
@@ -43,6 +32,16 @@ import static org.apache.parquet.schema.PrimitiveStringifier.TIME_NANOS_STRINGIF
 import static org.apache.parquet.schema.PrimitiveStringifier.TIME_NANOS_UTC_STRINGIFIER;
 import static org.apache.parquet.schema.PrimitiveStringifier.TIME_STRINGIFIER;
 import static org.apache.parquet.schema.PrimitiveStringifier.TIME_UTC_STRINGIFIER;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import org.apache.parquet.Preconditions;
+import org.apache.yetus.audience.InterfaceAudience;
 
 public abstract class LogicalTypeAnnotation {
   enum LogicalTypeToken {
@@ -104,7 +103,8 @@ public abstract class LogicalTypeAnnotation {
       @Override
       protected LogicalTypeAnnotation fromString(List<String> params) {
         if (params.size() != 2) {
-          throw new RuntimeException("Expecting 2 parameters for timestamp logical type, got " + params.size());
+          throw new RuntimeException(
+              "Expecting 2 parameters for timestamp logical type, got " + params.size());
         }
         return timestampType(Boolean.parseBoolean(params.get(1)), TimeUnit.valueOf(params.get(0)));
       }
@@ -240,7 +240,8 @@ public abstract class LogicalTypeAnnotation {
       case MAP_KEY_VALUE:
         return MapKeyValueTypeAnnotation.getInstance();
       default:
-        throw new RuntimeException("Can't convert original type to logical type, unknown original type " + originalType);
+        throw new RuntimeException(
+            "Can't convert original type to logical type, unknown original type " + originalType);
     }
   }
 
@@ -278,9 +279,10 @@ public abstract class LogicalTypeAnnotation {
 
   public static IntLogicalTypeAnnotation intType(final int bitWidth, final boolean isSigned) {
     Preconditions.checkArgument(
-      bitWidth == 8 || bitWidth == 16 || bitWidth == 32 || bitWidth == 64,
-      "Invalid bit width for integer logical type, %s is not allowed, " +
-        "valid bit width values: 8, 16, 32, 64", bitWidth);
+        bitWidth == 8 || bitWidth == 16 || bitWidth == 32 || bitWidth == 64,
+        "Invalid bit width for integer logical type, %s is not allowed, "
+            + "valid bit width values: 8, 16, 32, 64",
+        bitWidth);
     return new IntLogicalTypeAnnotation(bitWidth, isSigned);
   }
 
@@ -299,8 +301,7 @@ public abstract class LogicalTypeAnnotation {
   public static class StringLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final StringLogicalTypeAnnotation INSTANCE = new StringLogicalTypeAnnotation();
 
-    private StringLogicalTypeAnnotation() {
-    }
+    private StringLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -338,8 +339,7 @@ public abstract class LogicalTypeAnnotation {
   public static class MapLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final MapLogicalTypeAnnotation INSTANCE = new MapLogicalTypeAnnotation();
 
-    private MapLogicalTypeAnnotation() {
-    }
+    private MapLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -372,8 +372,7 @@ public abstract class LogicalTypeAnnotation {
   public static class ListLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final ListLogicalTypeAnnotation INSTANCE = new ListLogicalTypeAnnotation();
 
-    private ListLogicalTypeAnnotation() {
-    }
+    private ListLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -406,8 +405,7 @@ public abstract class LogicalTypeAnnotation {
   public static class EnumLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final EnumLogicalTypeAnnotation INSTANCE = new EnumLogicalTypeAnnotation();
 
-    private EnumLogicalTypeAnnotation() {
-    }
+    private EnumLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -511,8 +509,7 @@ public abstract class LogicalTypeAnnotation {
   public static class DateLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final DateLogicalTypeAnnotation INSTANCE = new DateLogicalTypeAnnotation();
 
-    private DateLogicalTypeAnnotation() {
-    }
+    private DateLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -713,8 +710,8 @@ public abstract class LogicalTypeAnnotation {
   }
 
   public static class IntLogicalTypeAnnotation extends LogicalTypeAnnotation {
-    private static final Set<Integer> VALID_BIT_WIDTH = Collections.unmodifiableSet(
-      new HashSet<>(asList(8, 16, 32, 64)));
+    private static final Set<Integer> VALID_BIT_WIDTH =
+        Collections.unmodifiableSet(new HashSet<>(asList(8, 16, 32, 64)));
 
     private final int bitWidth;
     private final boolean isSigned;
@@ -796,8 +793,7 @@ public abstract class LogicalTypeAnnotation {
   public static class JsonLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final JsonLogicalTypeAnnotation INSTANCE = new JsonLogicalTypeAnnotation();
 
-    private JsonLogicalTypeAnnotation() {
-    }
+    private JsonLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -835,8 +831,7 @@ public abstract class LogicalTypeAnnotation {
   public static class BsonLogicalTypeAnnotation extends LogicalTypeAnnotation {
     private static final BsonLogicalTypeAnnotation INSTANCE = new BsonLogicalTypeAnnotation();
 
-    private BsonLogicalTypeAnnotation() {
-    }
+    private BsonLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -875,8 +870,7 @@ public abstract class LogicalTypeAnnotation {
     private static final UUIDLogicalTypeAnnotation INSTANCE = new UUIDLogicalTypeAnnotation();
     public static final int BYTES = 16;
 
-    private UUIDLogicalTypeAnnotation() {
-    }
+    private UUIDLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -911,8 +905,7 @@ public abstract class LogicalTypeAnnotation {
       return INSTANCE;
     }
 
-    private IntervalLogicalTypeAnnotation() {
-    }
+    private IntervalLogicalTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private
@@ -962,8 +955,7 @@ public abstract class LogicalTypeAnnotation {
       return INSTANCE;
     }
 
-    private MapKeyValueTypeAnnotation() {
-    }
+    private MapKeyValueTypeAnnotation() {}
 
     @Override
     @InterfaceAudience.Private

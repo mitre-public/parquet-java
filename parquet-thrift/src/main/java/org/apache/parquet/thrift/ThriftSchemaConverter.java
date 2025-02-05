@@ -18,18 +18,18 @@
  */
 package org.apache.parquet.thrift;
 
+import static org.apache.parquet.schema.Type.Repetition.REPEATED;
+
 import com.twitter.elephantbird.thrift.TStructDescriptor;
 import com.twitter.elephantbird.thrift.TStructDescriptor.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.thrift.TBase;
-import org.apache.thrift.TEnum;
-import org.apache.thrift.TUnion;
-
-import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.Type;
 import org.apache.parquet.thrift.projection.FieldProjectionFilter;
 import org.apache.parquet.thrift.struct.ThriftField;
 import org.apache.parquet.thrift.struct.ThriftField.Requirement;
@@ -37,13 +37,10 @@ import org.apache.parquet.thrift.struct.ThriftType;
 import org.apache.parquet.thrift.struct.ThriftType.*;
 import org.apache.parquet.thrift.struct.ThriftType.StructType.StructOrUnionType;
 import org.apache.parquet.thrift.struct.ThriftTypeID;
+import org.apache.thrift.TBase;
+import org.apache.thrift.TEnum;
+import org.apache.thrift.TUnion;
 import org.apache.thrift.meta_data.FieldMetaData;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.apache.parquet.schema.Type.Repetition.REPEATED;
 
 /**
  * Given a thrift class, this class converts it to parquet schema,
@@ -63,8 +60,7 @@ public class ThriftSchemaConverter {
     conf = configuration;
   }
 
-  public ThriftSchemaConverter(
-      Configuration configuration, FieldProjectionFilter fieldProjectionFilter) {
+  public ThriftSchemaConverter(Configuration configuration, FieldProjectionFilter fieldProjectionFilter) {
     this(fieldProjectionFilter);
     conf = configuration;
   }
@@ -100,10 +96,11 @@ public class ThriftSchemaConverter {
    * @return the struct as a Parquet message type
    */
   public static MessageType convertWithoutProjection(StructType struct) {
-    return ThriftSchemaConvertVisitor.convert(struct, FieldProjectionFilter.ALL_COLUMNS, false, new Configuration());
+    return ThriftSchemaConvertVisitor.convert(
+        struct, FieldProjectionFilter.ALL_COLUMNS, false, new Configuration());
   }
 
-  public static <T extends TBase<?,?>> StructOrUnionType structOrUnionType(Class<T> klass) {
+  public static <T extends TBase<?, ?>> StructOrUnionType structOrUnionType(Class<T> klass) {
     return TUnion.class.isAssignableFrom(klass) ? StructOrUnionType.UNION : StructOrUnionType.STRUCT;
   }
 
@@ -116,10 +113,9 @@ public class ThriftSchemaConverter {
     List<Field> fields = struct.getFields();
     List<ThriftField> children = new ArrayList<ThriftField>(fields.size());
     for (Field field : fields) {
-      Requirement req =
-          field.getFieldMetaData() == null ?
-              Requirement.OPTIONAL :
-              Requirement.fromType(field.getFieldMetaData().requirementType);
+      Requirement req = field.getFieldMetaData() == null
+          ? Requirement.OPTIONAL
+          : Requirement.fromType(field.getFieldMetaData().requirementType);
       children.add(toThriftField(field.getName(), field, req));
     }
     return new StructType(children, structOrUnionType(struct.getThriftClass()));
@@ -138,11 +134,10 @@ public class ThriftSchemaConverter {
    * @param thriftElement the expected Schema for list elements
    * @return {@code true} if the repeatedType is the element schema
    */
-  static boolean isListElementType(Type repeatedType,
-                                   ThriftField thriftElement) {
-    if (repeatedType.isPrimitive() ||
-        (repeatedType.asGroupType().getFieldCount() != 1) ||
-        (repeatedType.asGroupType().getType(0).isRepetition(REPEATED))) {
+  static boolean isListElementType(Type repeatedType, ThriftField thriftElement) {
+    if (repeatedType.isPrimitive()
+        || (repeatedType.asGroupType().getFieldCount() != 1)
+        || (repeatedType.asGroupType().getType(0).isRepetition(REPEATED))) {
       // The repeated type must be the element type because it is an invalid
       // synthetic wrapper. Must be a group with one optional or required field
       return true;
@@ -223,4 +218,3 @@ public class ThriftSchemaConverter {
     return new ThriftField(name, field.getId(), requirement, type);
   }
 }
-

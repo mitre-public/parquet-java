@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.parquet.filter2.predicate.Operators.Column;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
@@ -38,7 +37,7 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
  * TODO: (https://issues.apache.org/jira/browse/PARQUET-30)
  */
 public class ValidTypeMap {
-  private ValidTypeMap() { }
+  private ValidTypeMap() {}
 
   // classToParquetType and parquetTypeToClass are used as a bi-directional map
   private static final Map<Class<?>, Set<PrimitiveTypeName>> classToParquetType = new HashMap<>();
@@ -62,7 +61,7 @@ public class ValidTypeMap {
   }
 
   static {
-    for (PrimitiveTypeName t: PrimitiveTypeName.values()) {
+    for (PrimitiveTypeName t : PrimitiveTypeName.values()) {
       Class<?> c = t.javaType;
 
       if (c.isPrimitive()) {
@@ -83,7 +82,8 @@ public class ValidTypeMap {
    * @param primitiveType the primitive type according to the schema
    * @param <T> the java Type of values in the column, must be Comparable
    */
-  public static <T extends Comparable<T>> void assertTypeValid(Column<T> foundColumn, PrimitiveTypeName primitiveType) {
+  public static <T extends Comparable<T>> void assertTypeValid(
+      Column<T> foundColumn, PrimitiveTypeName primitiveType) {
     Class<T> foundColumnType = foundColumn.getColumnType();
     ColumnPath columnPath = foundColumn.getColumnPath();
 
@@ -91,8 +91,7 @@ public class ValidTypeMap {
 
     if (validTypeDescriptors == null) {
       StringBuilder message = new StringBuilder();
-      message
-          .append("Column ")
+      message.append("Column ")
           .append(columnPath.toDotString())
           .append(" was declared as type: ")
           .append(foundColumnType.getName())
@@ -100,9 +99,7 @@ public class ValidTypeMap {
 
       Set<Class<?>> supportedTypes = parquetTypeToClass.get(primitiveType);
       if (supportedTypes != null) {
-        message
-          .append(" Supported types for this column are: ")
-          .append(supportedTypes);
+        message.append(" Supported types for this column are: ").append(supportedTypes);
       } else {
         message.append(" There are no supported types for columns of " + primitiveType);
       }
@@ -111,8 +108,7 @@ public class ValidTypeMap {
 
     if (!validTypeDescriptors.contains(primitiveType)) {
       StringBuilder message = new StringBuilder();
-      message
-          .append("FilterPredicate column: ")
+      message.append("FilterPredicate column: ")
           .append(columnPath.toDotString())
           .append("'s declared type (")
           .append(foundColumnType.getName())

@@ -18,12 +18,12 @@
  */
 package org.apache.parquet.bytes;
 
+import static java.lang.String.format;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.String.format;
 
 public class ConcatenatingByteArrayCollector extends BytesInput {
   private final List<byte[]> slabs = new ArrayList<byte[]>();
@@ -59,5 +59,4 @@ public class ConcatenatingByteArrayCollector extends BytesInput {
   public String memUsageString(String prefix) {
     return format("%s %s %d slabs, %,d bytes", prefix, getClass().getSimpleName(), slabs.size(), size);
   }
-
 }

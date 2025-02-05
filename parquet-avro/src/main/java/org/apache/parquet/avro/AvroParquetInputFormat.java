@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,7 +19,6 @@
 package org.apache.parquet.avro;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.parquet.hadoop.ParquetInputFormat;
 import org.apache.parquet.hadoop.util.ContextUtil;
@@ -53,8 +52,7 @@ public class AvroParquetInputFormat<T> extends ParquetInputFormat<T> {
    * @see org.apache.parquet.avro.AvroParquetOutputFormat#setSchema(org.apache.hadoop.mapreduce.Job, org.apache.avro.Schema)
    */
   public static void setRequestedProjection(Job job, Schema requestedProjection) {
-    AvroReadSupport.setRequestedProjection(ContextUtil.getConfiguration(job),
-        requestedProjection);
+    AvroReadSupport.setRequestedProjection(ContextUtil.getConfiguration(job), requestedProjection);
   }
 
   /**
@@ -79,8 +77,7 @@ public class AvroParquetInputFormat<T> extends ParquetInputFormat<T> {
    * @param job a job
    * @param supplierClass an avro data supplier class
    */
-  public static void setAvroDataSupplier(Job job,
-      Class<? extends AvroDataSupplier> supplierClass) {
+  public static void setAvroDataSupplier(Job job, Class<? extends AvroDataSupplier> supplierClass) {
     AvroReadSupport.setAvroDataSupplier(ContextUtil.getConfiguration(job), supplierClass);
   }
 }

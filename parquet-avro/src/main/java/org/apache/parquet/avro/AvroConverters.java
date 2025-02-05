@@ -127,7 +127,7 @@ public class AvroConverters {
     }
 
     @Override
-    final public void addBoolean(boolean value) {
+    public final void addBoolean(boolean value) {
       parent.addBoolean(value);
     }
   }
@@ -138,7 +138,7 @@ public class AvroConverters {
     }
 
     @Override
-    final public void addInt(int value) {
+    public final void addInt(int value) {
       parent.addInt(value);
     }
   }
@@ -149,12 +149,12 @@ public class AvroConverters {
     }
 
     @Override
-    final public void addInt(int value) {
+    public final void addInt(int value) {
       parent.addLong((long) value);
     }
 
     @Override
-    final public void addLong(long value) {
+    public final void addLong(long value) {
       parent.addLong(value);
     }
   }
@@ -165,17 +165,17 @@ public class AvroConverters {
     }
 
     @Override
-    final public void addInt(int value) {
+    public final void addInt(int value) {
       parent.addFloat((float) value);
     }
 
     @Override
-    final public void addLong(long value) {
+    public final void addLong(long value) {
       parent.addFloat((float) value);
     }
 
     @Override
-    final public void addFloat(float value) {
+    public final void addFloat(float value) {
       parent.addFloat(value);
     }
   }
@@ -186,22 +186,22 @@ public class AvroConverters {
     }
 
     @Override
-    final public void addInt(int value) {
+    public final void addInt(int value) {
       parent.addDouble((double) value);
     }
 
     @Override
-    final public void addLong(long value) {
+    public final void addLong(long value) {
       parent.addDouble((double) value);
     }
 
     @Override
-    final public void addFloat(float value) {
+    public final void addFloat(float value) {
       parent.addDouble((double) value);
     }
 
     @Override
-    final public void addDouble(double value) {
+    public final void addDouble(double value) {
       parent.addDouble(value);
     }
   }
@@ -259,15 +259,13 @@ public class AvroConverters {
     private final String stringableName;
     private final Constructor<?> ctor;
 
-    public FieldStringableConverter(ParentValueContainer parent,
-                                    Class<?> stringableClass) {
+    public FieldStringableConverter(ParentValueContainer parent, Class<?> stringableClass) {
       super(parent);
       stringableName = stringableClass.getName();
       try {
         this.ctor = stringableClass.getConstructor(String.class);
       } catch (NoSuchMethodException e) {
-        throw new ParquetDecodingException(
-            "Unable to get String constructor for " + stringableName, e);
+        throw new ParquetDecodingException("Unable to get String constructor for " + stringableName, e);
       }
     }
 
@@ -275,10 +273,8 @@ public class AvroConverters {
     public Object convert(Binary binary) {
       try {
         return ctor.newInstance(binary.toStringUsingUTF8());
-      } catch (InstantiationException | IllegalAccessException
-          | InvocationTargetException e) {
-        throw new ParquetDecodingException(
-            "Cannot convert binary to " + stringableName, e);
+      } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        throw new ParquetDecodingException("Cannot convert binary to " + stringableName, e);
       }
     }
   }
@@ -287,8 +283,7 @@ public class AvroConverters {
     private final Schema schema;
     private final GenericData model;
 
-    public FieldEnumConverter(ParentValueContainer parent, Schema enumSchema,
-                              GenericData model) {
+    public FieldEnumConverter(ParentValueContainer parent, Schema enumSchema, GenericData model) {
       super(parent);
       this.schema = enumSchema;
       this.model = model;
@@ -304,8 +299,7 @@ public class AvroConverters {
     private final Schema schema;
     private final GenericData model;
 
-    public FieldFixedConverter(ParentValueContainer parent, Schema avroSchema,
-                               GenericData model) {
+    public FieldFixedConverter(ParentValueContainer parent, Schema avroSchema, GenericData model) {
       super(parent);
       this.schema = avroSchema;
       this.model = model;

@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.parquet.ShouldNeverHappenException;
 
 public class ByteBufferInputStream extends InputStream {
@@ -101,8 +100,7 @@ public class ByteBufferInputStream extends InputStream {
   public void skipFully(long n) throws IOException {
     long skipped = skip(n);
     if (skipped < n) {
-      throw new EOFException(
-          "Not enough bytes to skip: " + skipped + " < " + n);
+      throw new EOFException("Not enough bytes to skip: " + skipped + " < " + n);
     }
   }
 

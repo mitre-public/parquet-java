@@ -23,8 +23,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
 import java.util.List;
+import org.slf4j.Logger;
 
 @Parameters(commandDescription = "Retrieves details on the functions of other commands")
 public class Help implements Command {
@@ -59,15 +59,16 @@ public class Help implements Command {
         }
 
         boolean hasRequired = false;
-        if (commander.getParameters().stream().anyMatch(p -> p.getNames().isEmpty())) {
-          console.info("\nUsage: {} [general options] {} {} [command options]",
-            new Object[] { programName, cmd, commander.getMainParameterDescription() });
+        if (commander.getParameters().stream()
+            .anyMatch(p -> p.getNames().isEmpty())) {
+          console.info(
+              "\nUsage: {} [general options] {} {} [command options]",
+              new Object[] {programName, cmd, commander.getMainParameterDescription()});
         } else {
-          console.info("\nUsage: {} [general options] {} [command options]",
-            new Object[] { programName, cmd });
+          console.info("\nUsage: {} [general options] {} [command options]", new Object[] {programName, cmd});
         }
-        console.info("\n  Description:");
-        console.info("\n    {}", jc.getCommandDescription(cmd));
+        //        console.info("\n  Description:");
+        //        console.info("\n    {}", jc.getCommandDescription(cmd));
         if (!commander.getParameters().isEmpty()) {
           console.info("\n  Command options:\n");
           for (ParameterDescription param : commander.getParameters()) {
@@ -85,8 +86,7 @@ public class Help implements Command {
               // comment
               console.info("\n    {}", example);
             } else {
-              console.info("    {} {} {}",
-                  new Object[] {programName, cmd, example});
+              console.info("    {} {} {}", new Object[] {programName, cmd, example});
             }
           }
         }
@@ -99,9 +99,7 @@ public class Help implements Command {
 
   public void printGenericHelp() {
     boolean hasRequired = false;
-    console.info(
-        "\nUsage: {} [options] [command] [command options]",
-        programName);
+    console.info("\nUsage: {} [options] [command] [command options]", programName);
     console.info("\n  Options:\n");
     for (ParameterDescription param : jc.getParameters()) {
       hasRequired = printOption(console, param) || hasRequired;
@@ -109,29 +107,29 @@ public class Help implements Command {
     if (hasRequired) {
       console.info("\n  * = required");
     }
-    console.info("\n  Commands:\n");
-    for (String command : jc.getCommands().keySet()) {
-      console.info("    {}\n\t{}",
-          command, jc.getCommandDescription(command));
-    }
+    //    console.info("\n  Commands:\n");
+    //    for (String command : jc.getCommands().keySet()) {
+    //      console.info("    {}\n\t{}", command, jc.getCommandDescription(command));
+    //    }
 
-    jc.getCommands().keySet().stream().filter(s -> !s.equals("help")).findFirst().ifPresent(command -> {
-      console.info("\n  Examples:");
-      console.info("\n    # print information for {}\n    {} help {}",
-        command, programName, command);
-      console.info("\n  See '{} help <command>' for more information on a " +
-        "specific command.", programName);
-    });
+    jc.getCommands().keySet().stream()
+        .filter(s -> !s.equals("help"))
+        .findFirst()
+        .ifPresent(command -> {
+          console.info("\n  Examples:");
+          console.info("\n    # print information for {}\n    {} help {}", command, programName, command);
+          console.info(
+              "\n  See '{} help <command>' for more information on a " + "specific command.",
+              programName);
+        });
   }
 
   private boolean printOption(Logger console, ParameterDescription param) {
     boolean required = param.getParameter().required();
     if (!param.getParameter().hidden()) {
-      console.info("  {} {}\n\t{}{}", new Object[]{
-          required ? "*" : " ",
-          param.getNames().trim(),
-          param.getDescription(),
-          formatDefault(param)});
+      console.info("  {} {}\n\t{}{}", new Object[] {
+        required ? "*" : " ", param.getNames().trim(), param.getDescription(), formatDefault(param)
+      });
     }
     return required;
   }
@@ -141,9 +139,8 @@ public class Help implements Command {
     if (defaultValue == null || param.getParameter().arity() < 1) {
       return "";
     }
-    return " (default: " + ((defaultValue instanceof String) ?
-        "\"" + defaultValue + "\"" :
-        defaultValue.toString()) + ")";
+    return " (default: " + ((defaultValue instanceof String) ? "\"" + defaultValue + "\"" : defaultValue.toString())
+        + ")";
   }
 
   @Override

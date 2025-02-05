@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,15 +20,13 @@ package org.apache.parquet.hadoop.thrift;
 
 import java.io.Closeable;
 import java.io.IOException;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.parquet.thrift.FieldIgnoredHandler;
 import org.apache.thrift.TBase;
 import org.apache.thrift.protocol.TProtocolFactory;
-
-import org.apache.parquet.thrift.FieldIgnoredHandler;
 
 /**
  * To create a Parquet file from the Thrift binary of records
@@ -51,8 +49,8 @@ public class ThriftToParquetFileWriter implements Closeable {
       Path fileToCreate,
       TaskAttemptContext taskAttemptContext,
       TProtocolFactory protocolFactory,
-      Class<? extends TBase<?,?>> thriftClass)
-          throws IOException, InterruptedException {
+      Class<? extends TBase<?, ?>> thriftClass)
+      throws IOException, InterruptedException {
     this(fileToCreate, taskAttemptContext, protocolFactory, thriftClass, true, null);
   }
 
@@ -70,8 +68,9 @@ public class ThriftToParquetFileWriter implements Closeable {
       Path fileToCreate,
       TaskAttemptContext taskAttemptContext,
       TProtocolFactory protocolFactory,
-      Class<? extends TBase<?,?>> thriftClass,
-      FieldIgnoredHandler errorHandler) throws IOException, InterruptedException {
+      Class<? extends TBase<?, ?>> thriftClass,
+      FieldIgnoredHandler errorHandler)
+      throws IOException, InterruptedException {
     this(fileToCreate, taskAttemptContext, protocolFactory, thriftClass, true, errorHandler);
   }
 
@@ -89,12 +88,13 @@ public class ThriftToParquetFileWriter implements Closeable {
       Path fileToCreate,
       TaskAttemptContext taskAttemptContext,
       TProtocolFactory protocolFactory,
-      Class<? extends TBase<?,?>> thriftClass,
+      Class<? extends TBase<?, ?>> thriftClass,
       boolean buffered,
-      FieldIgnoredHandler errorHandler) throws IOException, InterruptedException {
+      FieldIgnoredHandler errorHandler)
+      throws IOException, InterruptedException {
     this.taskAttemptContext = taskAttemptContext;
     this.recordWriter = new ParquetThriftBytesOutputFormat(
-        taskAttemptContext.getConfiguration(), protocolFactory, thriftClass, buffered, errorHandler)
+            taskAttemptContext.getConfiguration(), protocolFactory, thriftClass, buffered, errorHandler)
         .getRecordWriter(taskAttemptContext, fileToCreate);
   }
 

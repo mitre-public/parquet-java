@@ -18,6 +18,26 @@
  */
 package org.apache.parquet.crypto;
 
+import static org.apache.parquet.hadoop.ParquetFileWriter.EFMAGIC;
+import static org.apache.parquet.hadoop.ParquetFileWriter.EF_MAGIC_STR;
+import static org.apache.parquet.hadoop.ParquetFileWriter.MAGIC;
+import static org.apache.parquet.hadoop.ParquetFileWriter.Mode.OVERWRITE;
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -42,27 +62,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Base64;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.parquet.hadoop.ParquetFileWriter.EFMAGIC;
-import static org.apache.parquet.hadoop.ParquetFileWriter.EF_MAGIC_STR;
-import static org.apache.parquet.hadoop.ParquetFileWriter.MAGIC;
-import static org.apache.parquet.hadoop.ParquetFileWriter.Mode.OVERWRITE;
-import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
 
 /*
  * This file contains samples for writing and reading encrypted Parquet files in different
@@ -107,10 +106,11 @@ import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.INT32;
  */
 @RunWith(Parameterized.class)
 public class TestPropertiesDrivenEncryption {
-  @Parameterized.Parameters(name = "Run {index}: isKeyMaterialInternalStorage={0} isDoubleWrapping={1} isWrapLocally={2}")
+  @Parameterized.Parameters(
+      name = "Run {index}: isKeyMaterialInternalStorage={0} isDoubleWrapping={1} isWrapLocally={2}")
   public static Collection<Object[]> data() {
     Collection<Object[]> list = new ArrayList<>(8);
-    boolean[] flagValues = { false, true };
+    boolean[] flagValues = {false, true};
     for (boolean keyMaterialInternalStorage : flagValues) {
       for (boolean doubleWrapping : flagValues) {
         for (boolean wrapLocally : flagValues) {
@@ -141,60 +141,127 @@ public class TestPropertiesDrivenEncryption {
 
   private static final Base64.Encoder encoder = Base64.getEncoder();
   private static final String FOOTER_MASTER_KEY =
-    encoder.encodeToString("0123456789012345".getBytes(StandardCharsets.UTF_8));
+      encoder.encodeToString("0123456789012345".getBytes(StandardCharsets.UTF_8));
   private static final String[] COLUMN_MASTER_KEYS = {
     encoder.encodeToString("1234567890123450".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("1234567890123451".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("1234567890123452".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("1234567890123453".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("1234567890123454".getBytes(StandardCharsets.UTF_8)),
-    encoder.encodeToString("1234567890123455".getBytes(StandardCharsets.UTF_8))};
+    encoder.encodeToString("1234567890123455".getBytes(StandardCharsets.UTF_8))
+  };
   private static final String UNIFORM_MASTER_KEY =
-    encoder.encodeToString("0123456789012346".getBytes(StandardCharsets.UTF_8));
-  private static final String[] COLUMN_MASTER_KEY_IDS = { "kc1", "kc2", "kc3", "kc4", "kc5", "kc6"};
+      encoder.encodeToString("0123456789012346".getBytes(StandardCharsets.UTF_8));
+  private static final String[] COLUMN_MASTER_KEY_IDS = {"kc1", "kc2", "kc3", "kc4", "kc5", "kc6"};
   private static final String FOOTER_MASTER_KEY_ID = "kf";
   private static final String UNIFORM_MASTER_KEY_ID = "ku";
 
-  private static final String KEY_LIST =  new StringBuilder()
-    .append(COLUMN_MASTER_KEY_IDS[0]).append(": ").append(COLUMN_MASTER_KEYS[0]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[1]).append(": ").append(COLUMN_MASTER_KEYS[1]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[2]).append(": ").append(COLUMN_MASTER_KEYS[2]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[3]).append(": ").append(COLUMN_MASTER_KEYS[3]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[4]).append(": ").append(COLUMN_MASTER_KEYS[4]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[5]).append(": ").append(COLUMN_MASTER_KEYS[5]).append(", ")
-    .append(UNIFORM_MASTER_KEY_ID).append(": ").append(UNIFORM_MASTER_KEY).append(", ")
-    .append(FOOTER_MASTER_KEY_ID).append(": ").append(FOOTER_MASTER_KEY).toString();
+  private static final String KEY_LIST = new StringBuilder()
+      .append(COLUMN_MASTER_KEY_IDS[0])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[0])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[1])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[1])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[2])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[2])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[3])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[3])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[4])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[4])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[5])
+      .append(": ")
+      .append(COLUMN_MASTER_KEYS[5])
+      .append(", ")
+      .append(UNIFORM_MASTER_KEY_ID)
+      .append(": ")
+      .append(UNIFORM_MASTER_KEY)
+      .append(", ")
+      .append(FOOTER_MASTER_KEY_ID)
+      .append(": ")
+      .append(FOOTER_MASTER_KEY)
+      .toString();
 
   private static final String NEW_FOOTER_MASTER_KEY =
-    encoder.encodeToString("9123456789012345".getBytes(StandardCharsets.UTF_8));
+      encoder.encodeToString("9123456789012345".getBytes(StandardCharsets.UTF_8));
   private static final String[] NEW_COLUMN_MASTER_KEYS = {
     encoder.encodeToString("9234567890123450".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("9234567890123451".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("9234567890123452".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("9234567890123453".getBytes(StandardCharsets.UTF_8)),
     encoder.encodeToString("9234567890123454".getBytes(StandardCharsets.UTF_8)),
-    encoder.encodeToString("9234567890123455".getBytes(StandardCharsets.UTF_8))};
+    encoder.encodeToString("9234567890123455".getBytes(StandardCharsets.UTF_8))
+  };
   private static final String NEW_UNIFORM_MASTER_KEY =
-    encoder.encodeToString("9123456789012346".getBytes(StandardCharsets.UTF_8));
+      encoder.encodeToString("9123456789012346".getBytes(StandardCharsets.UTF_8));
 
-  private static final String NEW_KEY_LIST =  new StringBuilder()
-    .append(COLUMN_MASTER_KEY_IDS[0]).append(": ").append(NEW_COLUMN_MASTER_KEYS[0]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[1]).append(": ").append(NEW_COLUMN_MASTER_KEYS[1]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[2]).append(": ").append(NEW_COLUMN_MASTER_KEYS[2]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[3]).append(": ").append(NEW_COLUMN_MASTER_KEYS[3]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[4]).append(": ").append(NEW_COLUMN_MASTER_KEYS[4]).append(", ")
-    .append(COLUMN_MASTER_KEY_IDS[5]).append(": ").append(NEW_COLUMN_MASTER_KEYS[5]).append(", ")
-    .append(UNIFORM_MASTER_KEY_ID).append(": ").append(NEW_UNIFORM_MASTER_KEY).append(", ")
-    .append(FOOTER_MASTER_KEY_ID).append(": ").append(NEW_FOOTER_MASTER_KEY).toString();
+  private static final String NEW_KEY_LIST = new StringBuilder()
+      .append(COLUMN_MASTER_KEY_IDS[0])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[0])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[1])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[1])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[2])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[2])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[3])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[3])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[4])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[4])
+      .append(", ")
+      .append(COLUMN_MASTER_KEY_IDS[5])
+      .append(": ")
+      .append(NEW_COLUMN_MASTER_KEYS[5])
+      .append(", ")
+      .append(UNIFORM_MASTER_KEY_ID)
+      .append(": ")
+      .append(NEW_UNIFORM_MASTER_KEY)
+      .append(", ")
+      .append(FOOTER_MASTER_KEY_ID)
+      .append(": ")
+      .append(NEW_FOOTER_MASTER_KEY)
+      .toString();
 
   private static final String COLUMN_KEY_MAPPING = new StringBuilder()
-    .append(COLUMN_MASTER_KEY_IDS[0]).append(": ").append(SingleRow.DOUBLE_FIELD_NAME).append("; ")
-    .append(COLUMN_MASTER_KEY_IDS[1]).append(": ").append(SingleRow.FLOAT_FIELD_NAME).append("; ")
-    .append(COLUMN_MASTER_KEY_IDS[2]).append(": ").append(SingleRow.BOOLEAN_FIELD_NAME).append("; ")
-    .append(COLUMN_MASTER_KEY_IDS[3]).append(": ").append(SingleRow.INT32_FIELD_NAME).append("; ")
-    .append(COLUMN_MASTER_KEY_IDS[4]).append(": ").append(SingleRow.BINARY_FIELD_NAME).append("; ")
-    .append(COLUMN_MASTER_KEY_IDS[5]).append(": ").append(SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME)
-    .toString();
+      .append(COLUMN_MASTER_KEY_IDS[0])
+      .append(": ")
+      .append(SingleRow.DOUBLE_FIELD_NAME)
+      .append("; ")
+      .append(COLUMN_MASTER_KEY_IDS[1])
+      .append(": ")
+      .append(SingleRow.FLOAT_FIELD_NAME)
+      .append("; ")
+      .append(COLUMN_MASTER_KEY_IDS[2])
+      .append(": ")
+      .append(SingleRow.BOOLEAN_FIELD_NAME)
+      .append("; ")
+      .append(COLUMN_MASTER_KEY_IDS[3])
+      .append(": ")
+      .append(SingleRow.INT32_FIELD_NAME)
+      .append("; ")
+      .append(COLUMN_MASTER_KEY_IDS[4])
+      .append(": ")
+      .append(SingleRow.BINARY_FIELD_NAME)
+      .append("; ")
+      .append(COLUMN_MASTER_KEY_IDS[5])
+      .append(": ")
+      .append(SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME)
+      .toString();
 
   private static final int NUM_THREADS = 4;
   private static final int WAIT_FOR_WRITE_TO_END_SECONDS = 5;
@@ -247,8 +314,9 @@ public class TestPropertiesDrivenEncryption {
       public Configuration getHadoopConfiguration(TestPropertiesDrivenEncryption test) {
         Configuration conf = getCryptoProperties(test);
         setColumnAndFooterKeys(conf);
-        conf.set(PropertiesDrivenCryptoFactory.ENCRYPTION_ALGORITHM_PROPERTY_NAME,
-          ParquetCipher.AES_GCM_CTR_V1.toString());
+        conf.set(
+            PropertiesDrivenCryptoFactory.ENCRYPTION_ALGORITHM_PROPERTY_NAME,
+            ParquetCipher.AES_GCM_CTR_V1.toString());
         return conf;
       }
     },
@@ -261,7 +329,7 @@ public class TestPropertiesDrivenEncryption {
       }
     };
 
-    abstract public Configuration getHadoopConfiguration(TestPropertiesDrivenEncryption test);
+    public abstract Configuration getHadoopConfiguration(TestPropertiesDrivenEncryption test);
   }
 
   public enum DecryptionConfiguration {
@@ -284,7 +352,7 @@ public class TestPropertiesDrivenEncryption {
       }
     };
 
-    abstract public Configuration getHadoopConfiguration(TestPropertiesDrivenEncryption test);
+    public abstract Configuration getHadoopConfiguration(TestPropertiesDrivenEncryption test);
   }
 
   /**
@@ -292,8 +360,9 @@ public class TestPropertiesDrivenEncryption {
    */
   private static Configuration getCryptoProperties(TestPropertiesDrivenEncryption test) {
     Configuration conf = new Configuration();
-    conf.set(EncryptionPropertiesFactory.CRYPTO_FACTORY_CLASS_PROPERTY_NAME,
-      PropertiesDrivenCryptoFactory.class.getName());
+    conf.set(
+        EncryptionPropertiesFactory.CRYPTO_FACTORY_CLASS_PROPERTY_NAME,
+        PropertiesDrivenCryptoFactory.class.getName());
 
     if (test.isWrapLocally) {
       conf.set(KeyToolkit.KMS_CLIENT_CLASS_PROPERTY_NAME, LocalWrapInMemoryKMS.class.getName());
@@ -323,13 +392,15 @@ public class TestPropertiesDrivenEncryption {
     conf.set(PropertiesDrivenCryptoFactory.UNIFORM_KEY_PROPERTY_NAME, UNIFORM_MASTER_KEY_ID);
   }
 
-
   @Test
   public void testWriteReadEncryptedParquetFiles() throws IOException {
     Path rootPath = new Path(temporaryFolder.getRoot().getPath());
     LOG.info("======== testWriteReadEncryptedParquetFiles {} ========", rootPath.toString());
-    LOG.info("Run: isKeyMaterialInternalStorage={} isDoubleWrapping={} isWrapLocally={}",
-      isKeyMaterialInternalStorage, isDoubleWrapping, isWrapLocally);
+    LOG.info(
+        "Run: isKeyMaterialInternalStorage={} isDoubleWrapping={} isWrapLocally={}",
+        isKeyMaterialInternalStorage,
+        isDoubleWrapping,
+        isWrapLocally);
     KeyToolkit.removeCacheEntriesForAllTokens();
     ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
     try {
@@ -342,8 +413,8 @@ public class TestPropertiesDrivenEncryption {
     }
   }
 
-
-  private void testWriteEncryptedParquetFiles(Path root, List<SingleRow> data, ExecutorService threadPool) throws IOException {
+  private void testWriteEncryptedParquetFiles(Path root, List<SingleRow> data, ExecutorService threadPool)
+      throws IOException {
     EncryptionConfiguration[] encryptionConfigurations = EncryptionConfiguration.values();
     for (EncryptionConfiguration encryptionConfiguration : encryptionConfigurations) {
       Path encryptionConfigurationFolderPath = new Path(root, encryptionConfiguration.name());
@@ -359,7 +430,8 @@ public class TestPropertiesDrivenEncryption {
       for (int i = 0; i < NUM_THREADS; ++i) {
         final int threadNumber = i;
         threadPool.execute(() -> {
-          writeEncryptedParquetFile(encryptionConfigurationFolderPath, data, encryptionConfiguration, threadNumber);
+          writeEncryptedParquetFile(
+              encryptionConfigurationFolderPath, data, encryptionConfiguration, threadNumber);
           latch.countDown();
         });
       }
@@ -371,12 +443,12 @@ public class TestPropertiesDrivenEncryption {
     }
   }
 
-  private void writeEncryptedParquetFile(Path root, List<SingleRow> data, EncryptionConfiguration encryptionConfiguration,
-                                         int threadNumber) {
+  private void writeEncryptedParquetFile(
+      Path root, List<SingleRow> data, EncryptionConfiguration encryptionConfiguration, int threadNumber) {
     MessageType schema = SingleRow.getSchema();
     SimpleGroupFactory f = new SimpleGroupFactory(schema);
 
-    int pageSize = data.size() / 10;     // Ensure that several pages will be created
+    int pageSize = data.size() / 10; // Ensure that several pages will be created
     int rowGroupSize = pageSize * 6 * 5; // Ensure that there are more row-groups created
 
     Path file = new Path(root, getFileName(root, encryptionConfiguration, threadNumber));
@@ -391,44 +463,44 @@ public class TestPropertiesDrivenEncryption {
         fileEncryptionProperties = cryptoFactory.getFileEncryptionProperties(conf, file, null);
       }
     } catch (Exception e) {
-      addErrorToErrorCollectorAndLog("Failed writing " + file.toString(), e,
-        encryptionConfiguration, null);
+      addErrorToErrorCollectorAndLog("Failed writing " + file.toString(), e, encryptionConfiguration, null);
       return;
     }
     try (ParquetWriter<Group> writer = ExampleParquetWriter.builder(file)
-      .withConf(conf)
-      .withWriteMode(OVERWRITE)
-      .withType(schema)
-      .withPageSize(pageSize)
-      .withRowGroupSize(rowGroupSize)
-      .withEncryption(fileEncryptionProperties)
-      .build()) {
+        .withConf(conf)
+        .withWriteMode(OVERWRITE)
+        .withType(schema)
+        .withPageSize(pageSize)
+        .withRowGroupSize(rowGroupSize)
+        .withEncryption(fileEncryptionProperties)
+        .build()) {
 
       for (SingleRow singleRow : data) {
-        writer.write(
-          f.newGroup()
+        writer.write(f.newGroup()
             .append(SingleRow.BOOLEAN_FIELD_NAME, singleRow.boolean_field)
             .append(SingleRow.INT32_FIELD_NAME, singleRow.int32_field)
             .append(SingleRow.FLOAT_FIELD_NAME, singleRow.float_field)
             .append(SingleRow.DOUBLE_FIELD_NAME, singleRow.double_field)
             .append(SingleRow.BINARY_FIELD_NAME, Binary.fromConstantByteArray(singleRow.ba_field))
-            .append(SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME, Binary.fromConstantByteArray(singleRow.flba_field))
+            .append(
+                SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME,
+                Binary.fromConstantByteArray(singleRow.flba_field))
             .append(SingleRow.PLAINTEXT_INT32_FIELD_NAME, singleRow.plaintext_int32_field));
-
       }
     } catch (Exception e) {
-      addErrorToErrorCollectorAndLog("Failed writing " + file.toString(), e,
-        encryptionConfiguration, null);
+      addErrorToErrorCollectorAndLog("Failed writing " + file.toString(), e, encryptionConfiguration, null);
     }
   }
 
   private Path getFileName(Path root, EncryptionConfiguration encryptionConfiguration, int threadNumber) {
-    String suffix = (EncryptionConfiguration.NO_ENCRYPTION == encryptionConfiguration) ? ".parquet" : ".parquet.encrypted";
+    String suffix =
+        (EncryptionConfiguration.NO_ENCRYPTION == encryptionConfiguration) ? ".parquet" : ".parquet.encrypted";
     return new Path(root, encryptionConfiguration.toString() + "_" + threadNumber + suffix);
   }
 
-  private void testReadEncryptedParquetFiles(Path root, List<SingleRow> data, ExecutorService threadPool) throws IOException {
-    readFilesMultithreaded(root, data, threadPool, false/*keysRotated*/);
+  private void testReadEncryptedParquetFiles(Path root, List<SingleRow> data, ExecutorService threadPool)
+      throws IOException {
+    readFilesMultithreaded(root, data, threadPool, false /*keysRotated*/);
 
     if (isWrapLocally) {
       return; // key rotation is not supported with local key wrapping
@@ -436,7 +508,7 @@ public class TestPropertiesDrivenEncryption {
 
     LOG.info("--> Start master key rotation");
     Configuration hadoopConfigForRotation =
-      EncryptionConfiguration.ENCRYPT_COLUMNS_AND_FOOTER.getHadoopConfiguration(this);
+        EncryptionConfiguration.ENCRYPT_COLUMNS_AND_FOOTER.getHadoopConfiguration(this);
     hadoopConfigForRotation.set(InMemoryKMS.NEW_KEY_LIST_PROPERTY_NAME, NEW_KEY_LIST);
     InMemoryKMS.startKeyRotation(hadoopConfigForRotation);
 
@@ -447,7 +519,7 @@ public class TestPropertiesDrivenEncryption {
       }
       Path encryptionConfigurationFolderPath = new Path(root, encryptionConfiguration.name());
       try {
-        LOG.info("Rotate master keys in folder: "  + encryptionConfigurationFolderPath.toString());
+        LOG.info("Rotate master keys in folder: " + encryptionConfigurationFolderPath.toString());
         KeyToolkit.rotateMasterKeys(encryptionConfigurationFolderPath.toString(), hadoopConfigForRotation);
       } catch (UnsupportedOperationException e) {
         if (isKeyMaterialInternalStorage || isWrapLocally) {
@@ -469,7 +541,8 @@ public class TestPropertiesDrivenEncryption {
     readFilesMultithreaded(root, data, threadPool, true /*keysRotated*/);
   }
 
-  private void readFilesMultithreaded(Path root, List<SingleRow> data, ExecutorService threadPool, boolean keysRotated) {
+  private void readFilesMultithreaded(
+      Path root, List<SingleRow> data, ExecutorService threadPool, boolean keysRotated) {
     DecryptionConfiguration[] decryptionConfigurations = DecryptionConfiguration.values();
     for (DecryptionConfiguration decryptionConfiguration : decryptionConfigurations) {
       LOG.info("\n\n");
@@ -487,10 +560,16 @@ public class TestPropertiesDrivenEncryption {
         for (int i = 0; i < NUM_THREADS; ++i) {
           final int threadNumber = i;
           threadPool.execute(() -> {
-            Path file = getFileName(encryptionConfigurationFolderPath, encryptionConfiguration, threadNumber);
+            Path file =
+                getFileName(encryptionConfigurationFolderPath, encryptionConfiguration, threadNumber);
             LOG.info("--> Read file {} {}", file.toString(), encryptionConfiguration);
-            readFileAndCheckResult(hadoopConfig, encryptionConfiguration, decryptionConfiguration,
-              data, file, keysRotated);
+            readFileAndCheckResult(
+                hadoopConfig,
+                encryptionConfiguration,
+                decryptionConfiguration,
+                data,
+                file,
+                keysRotated);
 
             latch.countDown();
           });
@@ -504,9 +583,13 @@ public class TestPropertiesDrivenEncryption {
     }
   }
 
-  private void readFileAndCheckResult(Configuration hadoopConfig, EncryptionConfiguration encryptionConfiguration,
-                                      DecryptionConfiguration decryptionConfiguration,
-                                      List<SingleRow> data, Path file, boolean keysRotated) {
+  private void readFileAndCheckResult(
+      Configuration hadoopConfig,
+      EncryptionConfiguration encryptionConfiguration,
+      DecryptionConfiguration decryptionConfiguration,
+      List<SingleRow> data,
+      Path file,
+      boolean keysRotated) {
     FileDecryptionProperties fileDecryptionProperties = null;
     if (null == hadoopConfig) {
       hadoopConfig = new Configuration();
@@ -516,25 +599,35 @@ public class TestPropertiesDrivenEncryption {
     }
 
     // Set schema to only point to the non-encrypted columns
-    if ((decryptionConfiguration == DecryptionConfiguration.NO_DECRYPTION) &&
-      (encryptionConfiguration == EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
-      hadoopConfig.set("parquet.read.schema", Types.buildMessage()
-        .optional(INT32).named(SingleRow.PLAINTEXT_INT32_FIELD_NAME)
-        .named("FormatTestObject").toString());
+    if ((decryptionConfiguration == DecryptionConfiguration.NO_DECRYPTION)
+        && (encryptionConfiguration == EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
+      hadoopConfig.set(
+          "parquet.read.schema",
+          Types.buildMessage()
+              .optional(INT32)
+              .named(SingleRow.PLAINTEXT_INT32_FIELD_NAME)
+              .named("FormatTestObject")
+              .toString());
     }
-    if ((encryptionConfiguration != EncryptionConfiguration.NO_ENCRYPTION) &&
-      (encryptionConfiguration != EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
+    if ((encryptionConfiguration != EncryptionConfiguration.NO_ENCRYPTION)
+        && (encryptionConfiguration != EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
       byte[] magic = new byte[MAGIC.length];
       try (InputStream is = new FileInputStream(file.toString())) {
         if (is.read(magic) != magic.length) {
           throw new RuntimeException("ERROR");
         }
         if (!Arrays.equals(EFMAGIC, magic)) {
-          addErrorToErrorCollectorAndLog("File doesn't start with " + EF_MAGIC_STR, encryptionConfiguration, decryptionConfiguration);
+          addErrorToErrorCollectorAndLog(
+              "File doesn't start with " + EF_MAGIC_STR,
+              encryptionConfiguration,
+              decryptionConfiguration);
         }
       } catch (IOException e) {
-        addErrorToErrorCollectorAndLog("Failed to read magic string at the beginning of file", e,
-          encryptionConfiguration, decryptionConfiguration);
+        addErrorToErrorCollectorAndLog(
+            "Failed to read magic string at the beginning of file",
+            e,
+            encryptionConfiguration,
+            decryptionConfiguration);
       }
     }
 
@@ -544,9 +637,9 @@ public class TestPropertiesDrivenEncryption {
 
     int rowNum = 0;
     try (ParquetReader<Group> reader = ParquetReader.builder(new GroupReadSupport(), file)
-      .withConf(hadoopConfig)
-      .withDecryption(fileDecryptionProperties)
-      .build()) {
+        .withConf(hadoopConfig)
+        .withDecryption(fileDecryptionProperties)
+        .build()) {
       for (Group group = reader.read(); group != null; group = reader.read()) {
         SingleRow rowExpected = data.get(rowNum++);
 
@@ -566,16 +659,23 @@ public class TestPropertiesDrivenEncryption {
             addErrorToErrorCollectorAndLog("Wrong float", encryptionConfiguration, decryptionConfiguration);
           }
           if (rowExpected.double_field != group.getDouble(SingleRow.DOUBLE_FIELD_NAME, 0)) {
-            addErrorToErrorCollectorAndLog("Wrong double", encryptionConfiguration, decryptionConfiguration);
+            addErrorToErrorCollectorAndLog(
+                "Wrong double", encryptionConfiguration, decryptionConfiguration);
           }
-          if ((null != rowExpected.ba_field) &&
-            !Arrays.equals(rowExpected.ba_field, group.getBinary(SingleRow.BINARY_FIELD_NAME, 0).getBytes())) {
-            addErrorToErrorCollectorAndLog("Wrong byte array", encryptionConfiguration, decryptionConfiguration);
+          if ((null != rowExpected.ba_field)
+              && !Arrays.equals(
+                  rowExpected.ba_field,
+                  group.getBinary(SingleRow.BINARY_FIELD_NAME, 0)
+                      .getBytes())) {
+            addErrorToErrorCollectorAndLog(
+                "Wrong byte array", encryptionConfiguration, decryptionConfiguration);
           }
-          if (!Arrays.equals(rowExpected.flba_field,
-            group.getBinary(SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME, 0).getBytes())) {
-            addErrorToErrorCollectorAndLog("Wrong fixed-length byte array",
-              encryptionConfiguration, decryptionConfiguration);
+          if (!Arrays.equals(
+              rowExpected.flba_field,
+              group.getBinary(SingleRow.FIXED_LENGTH_BINARY_FIELD_NAME, 0)
+                  .getBytes())) {
+            addErrorToErrorCollectorAndLog(
+                "Wrong fixed-length byte array", encryptionConfiguration, decryptionConfiguration);
           }
         }
       }
@@ -600,8 +700,11 @@ public class TestPropertiesDrivenEncryption {
       if (encryptionConfiguration == EncryptionConfiguration.NO_ENCRYPTION) {
         if (decryptionConfiguration == DecryptionConfiguration.DECRYPT_WITH_KEY_RETRIEVER) {
           if (!exceptionMsg.endsWith("Applying decryptor on plaintext file")) {
-            addErrorToErrorCollectorAndLog("Expecting exception Applying decryptor on plaintext file",
-              exceptionMsg, encryptionConfiguration, decryptionConfiguration);
+            addErrorToErrorCollectorAndLog(
+                "Expecting exception Applying decryptor on plaintext file",
+                exceptionMsg,
+                encryptionConfiguration,
+                decryptionConfiguration);
           } else {
             LOG.info("Exception as expected: " + exceptionMsg);
           }
@@ -612,11 +715,14 @@ public class TestPropertiesDrivenEncryption {
     // Decryption configuration is null, so only plaintext file can be read. An exception is expected to
     // be thrown if the file is encrypted.
     if (decryptionConfiguration == DecryptionConfiguration.NO_DECRYPTION) {
-      if ((encryptionConfiguration != EncryptionConfiguration.NO_ENCRYPTION &&
-        encryptionConfiguration != EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
+      if ((encryptionConfiguration != EncryptionConfiguration.NO_ENCRYPTION
+          && encryptionConfiguration != EncryptionConfiguration.ENCRYPT_COLUMNS_PLAINTEXT_FOOTER)) {
         if (!exceptionMsg.endsWith("No encryption key list") && !exceptionMsg.endsWith("No keys available")) {
-          addErrorToErrorCollectorAndLog("Expecting  No keys available exception", exceptionMsg,
-            encryptionConfiguration, decryptionConfiguration);
+          addErrorToErrorCollectorAndLog(
+              "Expecting  No keys available exception",
+              exceptionMsg,
+              encryptionConfiguration,
+              decryptionConfiguration);
         } else {
           LOG.info("Exception as expected: " + exceptionMsg);
         }
@@ -624,17 +730,19 @@ public class TestPropertiesDrivenEncryption {
       }
     }
     exception.printStackTrace();
-    addErrorToErrorCollectorAndLog("Didn't expect an exception", exceptionMsg,
-        encryptionConfiguration, decryptionConfiguration);
+    addErrorToErrorCollectorAndLog(
+        "Didn't expect an exception", exceptionMsg, encryptionConfiguration, decryptionConfiguration);
   }
 
   private EncryptionConfiguration getEncryptionConfigurationFromFilename(String file) {
     if (!file.endsWith(".parquet.encrypted")) {
       return null;
     }
-    String fileNamePrefix = file.replaceFirst("(.*)_[0-9]+.parquet.encrypted", "$1");;
+    String fileNamePrefix = file.replaceFirst("(.*)_[0-9]+.parquet.encrypted", "$1");
+    ;
     try {
-      EncryptionConfiguration encryptionConfiguration = EncryptionConfiguration.valueOf(fileNamePrefix.toUpperCase());
+      EncryptionConfiguration encryptionConfiguration =
+          EncryptionConfiguration.valueOf(fileNamePrefix.toUpperCase());
       return encryptionConfiguration;
     } catch (IllegalArgumentException e) {
       LOG.error("File name doesn't match any known encryption configuration: " + file);
@@ -645,10 +753,14 @@ public class TestPropertiesDrivenEncryption {
     }
   }
 
-  private void addErrorToErrorCollectorAndLog(String errorMessage, String exceptionMessage, EncryptionConfiguration encryptionConfiguration,
-                                              DecryptionConfiguration decryptionConfiguration) {
-    String fullErrorMessage = String.format("%s - %s Error: %s, but got [%s]",
-      encryptionConfiguration, decryptionConfiguration, errorMessage, exceptionMessage);
+  private void addErrorToErrorCollectorAndLog(
+      String errorMessage,
+      String exceptionMessage,
+      EncryptionConfiguration encryptionConfiguration,
+      DecryptionConfiguration decryptionConfiguration) {
+    String fullErrorMessage = String.format(
+        "%s - %s Error: %s, but got [%s]",
+        encryptionConfiguration, decryptionConfiguration, errorMessage, exceptionMessage);
 
     synchronized (errorCollector) {
       errorCollector.addError(new Throwable(fullErrorMessage));
@@ -656,10 +768,12 @@ public class TestPropertiesDrivenEncryption {
     LOG.error(fullErrorMessage);
   }
 
-  private void addErrorToErrorCollectorAndLog(String errorMessage, EncryptionConfiguration encryptionConfiguration,
-                                                     DecryptionConfiguration decryptionConfiguration) {
-    String fullErrorMessage = String.format("%s - %s Error: %s",
-      encryptionConfiguration, decryptionConfiguration, errorMessage);
+  private void addErrorToErrorCollectorAndLog(
+      String errorMessage,
+      EncryptionConfiguration encryptionConfiguration,
+      DecryptionConfiguration decryptionConfiguration) {
+    String fullErrorMessage =
+        String.format("%s - %s Error: %s", encryptionConfiguration, decryptionConfiguration, errorMessage);
 
     synchronized (errorCollector) {
       errorCollector.addError(new Throwable(fullErrorMessage));
@@ -667,13 +781,15 @@ public class TestPropertiesDrivenEncryption {
     LOG.error(fullErrorMessage);
   }
 
-  private void addErrorToErrorCollectorAndLog(String errorMessage, Throwable exception,
-                                              EncryptionConfiguration encryptionConfiguration,
-                                              DecryptionConfiguration decryptionConfiguration) {
-    String errorMessageWithExceptionDetails = String.format("%s %s %s", errorMessage, exception.getClass().getName(),
-      exception.getMessage());
-    addErrorToErrorCollectorAndLog(errorMessageWithExceptionDetails,
-      encryptionConfiguration, decryptionConfiguration);
+  private void addErrorToErrorCollectorAndLog(
+      String errorMessage,
+      Throwable exception,
+      EncryptionConfiguration encryptionConfiguration,
+      DecryptionConfiguration decryptionConfiguration) {
+    String errorMessageWithExceptionDetails =
+        String.format("%s %s %s", errorMessage, exception.getClass().getName(), exception.getMessage());
+    addErrorToErrorCollectorAndLog(
+        errorMessageWithExceptionDetails, encryptionConfiguration, decryptionConfiguration);
     exception.printStackTrace();
   }
 }

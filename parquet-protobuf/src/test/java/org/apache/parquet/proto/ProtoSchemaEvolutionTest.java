@@ -18,18 +18,17 @@
  */
 package org.apache.parquet.proto;
 
-import org.apache.hadoop.fs.Path;
-import org.apache.parquet.proto.test.TestProto3SchemaV1;
-import org.apache.parquet.proto.test.TestProto3SchemaV2;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.List;
-
 import static org.apache.parquet.proto.TestUtils.readMessages;
 import static org.apache.parquet.proto.TestUtils.writeMessages;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+
+import java.io.IOException;
+import java.util.List;
+import org.apache.hadoop.fs.Path;
+import org.apache.parquet.proto.test.TestProto3SchemaV1;
+import org.apache.parquet.proto.test.TestProto3SchemaV2;
+import org.junit.Test;
 
 /**
  * Tests for backward/forward compatibility while write and read parquet using different versions of protobuf schema.
@@ -42,9 +41,9 @@ public class ProtoSchemaEvolutionTest {
   @Test
   public void testEnumSchemaWriteV2ReadV1() throws IOException {
     TestProto3SchemaV2.MessageSchema dataV2 = TestProto3SchemaV2.MessageSchema.newBuilder()
-      .setOptionalLabelNumberPair(TestProto3SchemaV2.MessageSchema.LabelNumberPair.SECOND)
-      .setOptionalString("string value")
-      .build();
+        .setOptionalLabelNumberPair(TestProto3SchemaV2.MessageSchema.LabelNumberPair.SECOND)
+        .setOptionalString("string value")
+        .build();
     Path file = writeMessages(dataV2);
     List<TestProto3SchemaV1.MessageSchema> messagesV1 = readMessages(file, TestProto3SchemaV1.MessageSchema.class);
     assertEquals(messagesV1.size(), 1);
@@ -58,11 +57,14 @@ public class ProtoSchemaEvolutionTest {
   @Test
   public void testEnumSchemaWriteV1ReadV2() throws IOException {
     TestProto3SchemaV1.MessageSchema dataV1WithEnumValueFromV2 = TestProto3SchemaV1.MessageSchema.newBuilder()
-      .setOptionalLabelNumberPairValue(2) // "2" is not defined in V1 enum, but the number is still accepted by protobuf
-      .build();
+        .setOptionalLabelNumberPairValue(
+            2) // "2" is not defined in V1 enum, but the number is still accepted by protobuf
+        .build();
     Path file = writeMessages(dataV1WithEnumValueFromV2);
     List<TestProto3SchemaV2.MessageSchema> messagesV2 = readMessages(file, TestProto3SchemaV2.MessageSchema.class);
     assertEquals(messagesV2.size(), 1);
-    assertSame(messagesV2.get(0).getOptionalLabelNumberPair(), TestProto3SchemaV2.MessageSchema.LabelNumberPair.SECOND);
+    assertSame(
+        messagesV2.get(0).getOptionalLabelNumberPair(),
+        TestProto3SchemaV2.MessageSchema.LabelNumberPair.SECOND);
   }
 }

@@ -21,7 +21,6 @@ package org.apache.parquet.internal.filter2.columnindex;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Function;
-
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.NoOpFilter;
@@ -77,13 +76,14 @@ public class ColumnIndexFilter implements Visitor<RowRanges> {
    * @return the ranges of the possible matching row indexes; the returned ranges will contain all the rows if any of
    *         the required offset index is missing
    */
-  public static RowRanges calculateRowRanges(FilterCompat.Filter filter, ColumnIndexStore columnIndexStore,
-      Set<ColumnPath> paths, long rowCount) {
+  public static RowRanges calculateRowRanges(
+      FilterCompat.Filter filter, ColumnIndexStore columnIndexStore, Set<ColumnPath> paths, long rowCount) {
     return filter.accept(new FilterCompat.Visitor<RowRanges>() {
       @Override
       public RowRanges visit(FilterPredicateCompat filterPredicateCompat) {
         try {
-          return filterPredicateCompat.getFilterPredicate()
+          return filterPredicateCompat
+              .getFilterPredicate()
               .accept(new ColumnIndexFilter(columnIndexStore, paths, rowCount));
         } catch (MissingOffsetIndexException e) {
           LOGGER.info(e.getMessage());
@@ -123,8 +123,8 @@ public class ColumnIndexFilter implements Visitor<RowRanges> {
 
   @Override
   public <T extends Comparable<T>> RowRanges visit(NotEq<T> notEq) {
-    return applyPredicate(notEq.getColumn(), ci -> ci.visit(notEq),
-        notEq.getValue() == null ? RowRanges.EMPTY : allRows());
+    return applyPredicate(
+        notEq.getColumn(), ci -> ci.visit(notEq), notEq.getValue() == null ? RowRanges.EMPTY : allRows());
   }
 
   @Override
@@ -161,19 +161,23 @@ public class ColumnIndexFilter implements Visitor<RowRanges> {
 
   @Override
   public <T extends Comparable<T>, U extends UserDefinedPredicate<T>> RowRanges visit(UserDefined<T, U> udp) {
-    return applyPredicate(udp.getColumn(), ci -> ci.visit(udp),
+    return applyPredicate(
+        udp.getColumn(),
+        ci -> ci.visit(udp),
         udp.getUserDefinedPredicate().acceptsNullValue() ? allRows() : RowRanges.EMPTY);
   }
 
   @Override
   public <T extends Comparable<T>, U extends UserDefinedPredicate<T>> RowRanges visit(
       LogicalNotUserDefined<T, U> udp) {
-    return applyPredicate(udp.getUserDefined().getColumn(), ci -> ci.visit(udp),
+    return applyPredicate(
+        udp.getUserDefined().getColumn(),
+        ci -> ci.visit(udp),
         udp.getUserDefined().getUserDefinedPredicate().acceptsNullValue() ? RowRanges.EMPTY : allRows());
   }
 
-  private RowRanges applyPredicate(Column<?> column, Function<ColumnIndex, PrimitiveIterator.OfInt> func,
-      RowRanges rangesForMissingColumns) {
+  private RowRanges applyPredicate(
+      Column<?> column, Function<ColumnIndex, PrimitiveIterator.OfInt> func, RowRanges rangesForMissingColumns) {
     ColumnPath columnPath = column.getColumnPath();
     if (!columns.contains(columnPath)) {
       return rangesForMissingColumns;

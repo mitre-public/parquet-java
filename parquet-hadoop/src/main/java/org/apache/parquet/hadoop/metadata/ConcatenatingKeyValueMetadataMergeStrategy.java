@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class ConcatenatingKeyValueMetadataMergeStrategy implements KeyValueMetadataMergeStrategy {
   private static final String DEFAULT_DELIMITER = ",";
-  
+
   private final String delimiter;
 
   /**
@@ -41,13 +41,13 @@ public class ConcatenatingKeyValueMetadataMergeStrategy implements KeyValueMetad
 
   /**
    * Constructor to use different delimiter for concatenation.
-   * 
+   *
    * @param delim delimiter char sequence.
    */
   public ConcatenatingKeyValueMetadataMergeStrategy(String delim) {
     this.delimiter = delim;
   }
-  
+
   /**
    * @param keyValueMetaData the merged app specific metadata
    */

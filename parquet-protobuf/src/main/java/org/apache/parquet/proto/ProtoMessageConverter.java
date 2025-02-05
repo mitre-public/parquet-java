@@ -18,10 +18,22 @@
  */
 package org.apache.parquet.proto;
 
+import static com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
+import static java.util.Optional.of;
+import static org.apache.parquet.proto.ProtoConstants.CONFIG_ACCEPT_UNKNOWN_ENUM;
+import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_ITEM_SEPARATOR;
+import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_KEY_VALUE_SEPARATOR;
+import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_PREFIX;
+
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import com.twitter.elephantbird.util.Protobufs;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.hadoop.BadConfigurationException;
@@ -37,19 +49,6 @@ import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
-import static java.util.Optional.of;
-import static org.apache.parquet.proto.ProtoConstants.CONFIG_ACCEPT_UNKNOWN_ENUM;
-import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_ITEM_SEPARATOR;
-import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_KEY_VALUE_SEPARATOR;
-import static org.apache.parquet.proto.ProtoConstants.METADATA_ENUM_PREFIX;
 
 /**
  * Converts Protocol Buffer message (both top level and inner) to parquet.
@@ -74,12 +73,22 @@ class ProtoMessageConverter extends GroupConverter {
    * @param parquetSchema The (part of) parquet schema that should match to the expected proto
    * @param extraMetadata Metadata from parquet footer, containing useful information about parquet-proto convertion behavior
    */
-  ProtoMessageConverter(Configuration conf, ParentValueContainer pvc, Class<? extends Message> protoClass, GroupType parquetSchema, Map<String, String> extraMetadata) {
+  ProtoMessageConverter(
+      Configuration conf,
+      ParentValueContainer pvc,
+      Class<? extends Message> protoClass,
+      GroupType parquetSchema,
+      Map<String, String> extraMetadata) {
     this(conf, pvc, Protobufs.getMessageBuilder(protoClass), parquetSchema, extraMetadata);
   }
 
   // For usage in message arrays
-  ProtoMessageConverter(Configuration conf, ParentValueContainer pvc, Message.Builder builder, GroupType parquetSchema, Map<String, String> extraMetadata) {
+  ProtoMessageConverter(
+      Configuration conf,
+      ParentValueContainer pvc,
+      Message.Builder builder,
+      GroupType parquetSchema,
+      Map<String, String> extraMetadata) {
 
     int schemaSize = parquetSchema.getFieldCount();
     converters = new Converter[schemaSize];
@@ -100,9 +109,10 @@ class ProtoMessageConverter extends GroupConverter {
       Descriptors.FieldDescriptor protoField = protoDescriptor.findFieldByName(parquetField.getName());
 
       if (protoField == null) {
-        String description = "Scheme mismatch \n\"" + parquetField + "\"" +
-                "\n proto descriptor:\n" + protoDescriptor.toProto();
-        throw new IncompatibleSchemaModificationException("Cant find \"" + parquetField.getName() + "\" " + description);
+        String description = "Scheme mismatch \n\"" + parquetField + "\"" + "\n proto descriptor:\n"
+            + protoDescriptor.toProto();
+        throw new IncompatibleSchemaModificationException(
+            "Cant find \"" + parquetField.getName() + "\" " + description);
       }
 
       converters[parquetFieldIndex - 1] = newMessageConverter(myBuilder, protoField, parquetField);
@@ -111,16 +121,13 @@ class ProtoMessageConverter extends GroupConverter {
     }
   }
 
-
   @Override
   public Converter getConverter(int fieldIndex) {
     return converters[fieldIndex];
   }
 
   @Override
-  public void start() {
-
-  }
+  public void start() {}
 
   @Override
   public void end() {
@@ -128,7 +135,8 @@ class ProtoMessageConverter extends GroupConverter {
     myBuilder.clear();
   }
 
-  protected Converter newMessageConverter(final Message.Builder parentBuilder, final Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
+  protected Converter newMessageConverter(
+      final Message.Builder parentBuilder, final Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
 
     boolean isRepeated = fieldDescriptor.isRepeated();
 
@@ -155,53 +163,66 @@ class ProtoMessageConverter extends GroupConverter {
       return newScalarConverter(parent, parentBuilder, fieldDescriptor, parquetType);
     }
 
-    return logicalTypeAnnotation.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Converter>() {
-      @Override
-      public Optional<Converter> visit(LogicalTypeAnnotation.ListLogicalTypeAnnotation listLogicalType) {
-        return of(new ListConverter(parentBuilder, fieldDescriptor, parquetType));
-      }
+    return logicalTypeAnnotation
+        .accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Converter>() {
+          @Override
+          public Optional<Converter> visit(LogicalTypeAnnotation.ListLogicalTypeAnnotation listLogicalType) {
+            return of(new ListConverter(parentBuilder, fieldDescriptor, parquetType));
+          }
 
-      @Override
-      public Optional<Converter> visit(LogicalTypeAnnotation.MapLogicalTypeAnnotation mapLogicalType) {
-        return of(new MapConverter(parentBuilder, fieldDescriptor, parquetType));
-      }
-    }).orElseGet(() -> newScalarConverter(parent, parentBuilder, fieldDescriptor, parquetType));
+          @Override
+          public Optional<Converter> visit(LogicalTypeAnnotation.MapLogicalTypeAnnotation mapLogicalType) {
+            return of(new MapConverter(parentBuilder, fieldDescriptor, parquetType));
+          }
+        })
+        .orElseGet(() -> newScalarConverter(parent, parentBuilder, fieldDescriptor, parquetType));
   }
 
-  protected Converter newScalarConverter(ParentValueContainer pvc, Message.Builder parentBuilder, Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
+  protected Converter newScalarConverter(
+      ParentValueContainer pvc,
+      Message.Builder parentBuilder,
+      Descriptors.FieldDescriptor fieldDescriptor,
+      Type parquetType) {
 
     JavaType javaType = fieldDescriptor.getJavaType();
 
     switch (javaType) {
-      case STRING: return new ProtoStringConverter(pvc);
-      case FLOAT: return new ProtoFloatConverter(pvc);
-      case DOUBLE: return new ProtoDoubleConverter(pvc);
-      case BOOLEAN: return new ProtoBooleanConverter(pvc);
-      case BYTE_STRING: return new ProtoBinaryConverter(pvc);
-      case ENUM: return new ProtoEnumConverter(pvc, fieldDescriptor);
-      case INT: return new ProtoIntConverter(pvc);
-      case LONG: return new ProtoLongConverter(pvc);
+      case STRING:
+        return new ProtoStringConverter(pvc);
+      case FLOAT:
+        return new ProtoFloatConverter(pvc);
+      case DOUBLE:
+        return new ProtoDoubleConverter(pvc);
+      case BOOLEAN:
+        return new ProtoBooleanConverter(pvc);
+      case BYTE_STRING:
+        return new ProtoBinaryConverter(pvc);
+      case ENUM:
+        return new ProtoEnumConverter(pvc, fieldDescriptor);
+      case INT:
+        return new ProtoIntConverter(pvc);
+      case LONG:
+        return new ProtoLongConverter(pvc);
       case MESSAGE: {
         Message.Builder subBuilder = parentBuilder.newBuilderForField(fieldDescriptor);
         return new ProtoMessageConverter(conf, pvc, subBuilder, parquetType.asGroupType(), extraMetadata);
       }
     }
 
-    throw new UnsupportedOperationException(String.format("Cannot convert type: %s" +
-            " (Parquet type: %s) ", javaType, parquetType));
+    throw new UnsupportedOperationException(
+        String.format("Cannot convert type: %s" + " (Parquet type: %s) ", javaType, parquetType));
   }
 
   public Message.Builder getBuilder() {
     return myBuilder;
   }
 
-  static abstract class ParentValueContainer {
+  abstract static class ParentValueContainer {
 
     /**
      * Adds the value to the parent.
      */
     public abstract void add(Object value);
-
   }
 
   final class ProtoEnumConverter extends PrimitiveConverter {
@@ -227,7 +248,8 @@ class ProtoMessageConverter extends GroupConverter {
      * Fills lookup structure for translating between parquet enum values and Protocol buffer enum values.
      * */
     private Map<Binary, Descriptors.EnumValueDescriptor> makeLookupStructure(Descriptors.EnumDescriptor enumType) {
-      Map<Binary, Descriptors.EnumValueDescriptor> lookupStructure = new HashMap<Binary, Descriptors.EnumValueDescriptor>();
+      Map<Binary, Descriptors.EnumValueDescriptor> lookupStructure =
+          new HashMap<Binary, Descriptors.EnumValueDescriptor>();
 
       if (extraMetadata.containsKey(METADATA_ENUM_PREFIX + enumType.getFullName())) {
         String enumNameNumberPairs = extraMetadata.get(METADATA_ENUM_PREFIX + enumType.getFullName());
@@ -238,9 +260,12 @@ class ProtoMessageConverter extends GroupConverter {
         for (String enumItem : enumNameNumberPairs.split(METADATA_ENUM_ITEM_SEPARATOR)) {
           String[] nameAndNumber = enumItem.split(METADATA_ENUM_KEY_VALUE_SEPARATOR);
           if (nameAndNumber.length != 2) {
-            throw new BadConfigurationException("Invalid enum bookkeeper from the metadata: " + enumNameNumberPairs);
+            throw new BadConfigurationException(
+                "Invalid enum bookkeeper from the metadata: " + enumNameNumberPairs);
           }
-          lookupStructure.put(Binary.fromString(nameAndNumber[0]), enumType.findValueByNumberCreatingIfUnknown(Integer.parseInt(nameAndNumber[1])));
+          lookupStructure.put(
+              Binary.fromString(nameAndNumber[0]),
+              enumType.findValueByNumberCreatingIfUnknown(Integer.parseInt(nameAndNumber[1])));
         }
       } else {
         List<Descriptors.EnumValueDescriptor> enumValues = enumType.getValues();
@@ -269,7 +294,8 @@ class ProtoMessageConverter extends GroupConverter {
         if (unknownLabel.startsWith(unknownEnumPrefix)) {
           try {
             int i = Integer.parseInt(unknownLabel.substring(unknownEnumPrefix.length()));
-            Descriptors.EnumValueDescriptor unknownEnumValue = enumType.findValueByNumberCreatingIfUnknown(i);
+            Descriptors.EnumValueDescriptor unknownEnumValue =
+                enumType.findValueByNumberCreatingIfUnknown(i);
             // build new EnumValueDescriptor and put it in the value cache
             enumLookup.put(binaryValue, unknownEnumValue);
             return unknownEnumValue;
@@ -279,17 +305,19 @@ class ProtoMessageConverter extends GroupConverter {
           }
         }
         if (!acceptUnknownEnum) {
-          // Safe mode, when an enum does not have its number in metadata (data written before this fix), and its label
-          // is unrecognizable (neither defined in the schema, nor parsable with "UNKNOWN_ENUM_*" pattern, which means
+          // Safe mode, when an enum does not have its number in metadata (data written before this fix), and
+          // its label
+          // is unrecognizable (neither defined in the schema, nor parsable with "UNKNOWN_ENUM_*" pattern,
+          // which means
           // probably the reader schema is not up-to-date), we reject with an error.
           Set<Binary> knownValues = enumLookup.keySet();
           String msg = "Illegal enum value \"" + binaryValue + "\""
-            + " in protocol buffer \"" + fieldType.getFullName() + "\""
-            + " legal values are: \"" + knownValues + "\"";
+              + " in protocol buffer \"" + fieldType.getFullName() + "\""
+              + " legal values are: \"" + knownValues + "\"";
           throw new InvalidRecordException(msg);
         }
-        LOG.error("Found unknown value " +  unknownLabel + " for field " + fieldType.getFullName() +
-          " probably because your proto schema is outdated, accept it as unknown enum with number -1");
+        LOG.error("Found unknown value " + unknownLabel + " for field " + fieldType.getFullName()
+            + " probably because your proto schema is outdated, accept it as unknown enum with number -1");
         Descriptors.EnumValueDescriptor unrecognized = enumType.findValueByNumberCreatingIfUnknown(-1);
         enumLookup.put(binaryValue, unrecognized);
         return unrecognized;
@@ -298,7 +326,7 @@ class ProtoMessageConverter extends GroupConverter {
     }
 
     @Override
-    final public void addBinary(Binary binaryValue) {
+    public final void addBinary(Binary binaryValue) {
       Descriptors.EnumValueDescriptor protoValue = translateEnumValue(binaryValue);
       parent.add(protoValue);
     }
@@ -315,13 +343,12 @@ class ProtoMessageConverter extends GroupConverter {
 
     @Override
     public void setDictionary(Dictionary dictionary) {
-      dict = new  Descriptors.EnumValueDescriptor[dictionary.getMaxId() + 1];
+      dict = new Descriptors.EnumValueDescriptor[dictionary.getMaxId() + 1];
       for (int i = 0; i <= dictionary.getMaxId(); i++) {
         Binary binaryValue = dictionary.decodeToBinary(i);
         dict[i] = translateEnumValue(binaryValue);
       }
     }
-
   }
 
   final class ProtoBinaryConverter extends PrimitiveConverter {
@@ -339,7 +366,6 @@ class ProtoMessageConverter extends GroupConverter {
     }
   }
 
-
   final class ProtoBooleanConverter extends PrimitiveConverter {
 
     final ParentValueContainer parent;
@@ -349,10 +375,9 @@ class ProtoMessageConverter extends GroupConverter {
     }
 
     @Override
-    final public void addBoolean(boolean value) {
+    public final void addBoolean(boolean value) {
       parent.add(value);
     }
-
   }
 
   final class ProtoDoubleConverter extends PrimitiveConverter {
@@ -424,7 +449,6 @@ class ProtoMessageConverter extends GroupConverter {
       String str = binary.toStringUsingUTF8();
       parent.add(str);
     }
-
   }
 
   /**
@@ -452,20 +476,26 @@ class ProtoMessageConverter extends GroupConverter {
   final class ListConverter extends GroupConverter {
     private final Converter converter;
 
-    public ListConverter(Message.Builder parentBuilder, Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
+    public ListConverter(
+        Message.Builder parentBuilder, Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
       LogicalTypeAnnotation logicalTypeAnnotation = parquetType.getLogicalTypeAnnotation();
-      if (!(logicalTypeAnnotation instanceof LogicalTypeAnnotation.ListLogicalTypeAnnotation) || parquetType.isPrimitive()) {
-        throw new ParquetDecodingException("Expected LIST wrapper. Found: " + logicalTypeAnnotation + " instead.");
+      if (!(logicalTypeAnnotation instanceof LogicalTypeAnnotation.ListLogicalTypeAnnotation)
+          || parquetType.isPrimitive()) {
+        throw new ParquetDecodingException(
+            "Expected LIST wrapper. Found: " + logicalTypeAnnotation + " instead.");
       }
 
       GroupType rootWrapperType = parquetType.asGroupType();
-      if (!rootWrapperType.containsField("list") || rootWrapperType.getType("list").isPrimitive()) {
-        throw new ParquetDecodingException("Expected repeated 'list' group inside LIST wrapperr but got: " + rootWrapperType);
+      if (!rootWrapperType.containsField("list")
+          || rootWrapperType.getType("list").isPrimitive()) {
+        throw new ParquetDecodingException(
+            "Expected repeated 'list' group inside LIST wrapperr but got: " + rootWrapperType);
       }
 
       GroupType listType = rootWrapperType.getType("list").asGroupType();
       if (!listType.containsField("element")) {
-        throw new ParquetDecodingException("Expected 'element' inside repeated list group but got: " + listType);
+        throw new ParquetDecodingException(
+            "Expected 'element' inside repeated list group but got: " + listType);
       }
 
       Type elementType = listType.getType("element");
@@ -485,40 +515,33 @@ class ProtoMessageConverter extends GroupConverter {
         }
 
         @Override
-        public void start() {
-
-        }
+        public void start() {}
 
         @Override
-        public void end() {
-
-        }
+        public void end() {}
       };
     }
 
     @Override
-    public void start() {
-
-    }
+    public void start() {}
 
     @Override
-    public void end() {
-
-    }
+    public void end() {}
   }
-
 
   final class MapConverter extends GroupConverter {
     private final Converter converter;
 
-    public MapConverter(Message.Builder parentBuilder, Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
+    public MapConverter(
+        Message.Builder parentBuilder, Descriptors.FieldDescriptor fieldDescriptor, Type parquetType) {
       LogicalTypeAnnotation logicalTypeAnnotation = parquetType.getLogicalTypeAnnotation();
       if (!(logicalTypeAnnotation instanceof LogicalTypeAnnotation.MapLogicalTypeAnnotation)) {
-        throw new ParquetDecodingException("Expected MAP wrapper. Found: " + logicalTypeAnnotation + " instead.");
+        throw new ParquetDecodingException(
+            "Expected MAP wrapper. Found: " + logicalTypeAnnotation + " instead.");
       }
 
       Type parquetSchema;
-      if (parquetType.asGroupType().containsField("key_value")){
+      if (parquetType.asGroupType().containsField("key_value")) {
         parquetSchema = parquetType.asGroupType().getType("key_value");
       } else {
         throw new ParquetDecodingException("Expected map but got: " + parquetType);
@@ -536,11 +559,9 @@ class ProtoMessageConverter extends GroupConverter {
     }
 
     @Override
-    public void start() {
-    }
+    public void start() {}
 
     @Override
-    public void end() {
-    }
+    public void end() {}
   }
 }

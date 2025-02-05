@@ -29,8 +29,7 @@ public class OutputStreamCloseException extends ParquetRuntimeException {
 
   private static final long serialVersionUID = 1L;
 
-  public OutputStreamCloseException() {
-  }
+  public OutputStreamCloseException() {}
 
   public OutputStreamCloseException(String message, Throwable cause) {
     super(message, cause);

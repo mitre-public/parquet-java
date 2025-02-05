@@ -16,24 +16,23 @@
 package org.apache.parquet.hadoop.thrift;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.thrift.TBase;
-import org.apache.thrift.TException;
-
 import org.apache.parquet.io.ParquetEncodingException;
 import org.apache.parquet.thrift.ThriftSchemaConverter;
 import org.apache.parquet.thrift.struct.ThriftType.StructType;
+import org.apache.thrift.TBase;
+import org.apache.thrift.TException;
 
 public class TBaseWriteSupport<T extends TBase<?, ?>> extends AbstractThriftWriteSupport<T> {
 
   private static Configuration conf;
 
-  public static <U extends TBase<?,?>> void setThriftClass(Configuration configuration, Class<U> thriftClass) {
+  public static <U extends TBase<?, ?>> void setThriftClass(Configuration configuration, Class<U> thriftClass) {
     conf = configuration;
     AbstractThriftWriteSupport.setGenericThriftClass(configuration, thriftClass);
   }
 
-  public static Class<? extends TBase<?,?>> getThriftClass(Configuration configuration) {
-    return (Class<? extends TBase<?,?>>)AbstractThriftWriteSupport.getGenericThriftClass(configuration);
+  public static Class<? extends TBase<?, ?>> getThriftClass(Configuration configuration) {
+    return (Class<? extends TBase<?, ?>>) AbstractThriftWriteSupport.getGenericThriftClass(configuration);
   }
 
   /**
@@ -41,8 +40,7 @@ public class TBaseWriteSupport<T extends TBase<?, ?>> extends AbstractThriftWrit
    * the configuration must contain a thriftClass setting
    * @see TBaseWriteSupport#setThriftClass(Configuration, Class)
    */
-  public TBaseWriteSupport() {
-  }
+  public TBaseWriteSupport() {}
 
   public TBaseWriteSupport(Class<T> thriftClass) {
     super(thriftClass);
@@ -56,7 +54,7 @@ public class TBaseWriteSupport<T extends TBase<?, ?>> extends AbstractThriftWrit
   @Override
   protected StructType getThriftStruct() {
     ThriftSchemaConverter thriftSchemaConverter = new ThriftSchemaConverter(conf);
-    return thriftSchemaConverter.toStructType((Class<TBase<?, ?>>)thriftClass);
+    return thriftSchemaConverter.toStructType((Class<TBase<?, ?>>) thriftClass);
   }
 
   @Override

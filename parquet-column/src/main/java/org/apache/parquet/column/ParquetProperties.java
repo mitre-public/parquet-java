@@ -18,10 +18,11 @@
  */
 package org.apache.parquet.column;
 
+import static org.apache.parquet.bytes.BytesUtils.getWidthFromMaxInt;
+
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
-
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.CapacityByteArrayOutputStream;
@@ -37,8 +38,6 @@ import org.apache.parquet.column.values.factory.ValuesWriterFactory;
 import org.apache.parquet.column.values.rle.RunLengthBitPackingHybridEncoder;
 import org.apache.parquet.column.values.rle.RunLengthBitPackingHybridValuesWriter;
 import org.apache.parquet.schema.MessageType;
-
-import static org.apache.parquet.bytes.BytesUtils.getWidthFromMaxInt;
 
 /**
  * This class represents all the configurable Parquet properties.
@@ -67,8 +66,8 @@ public class ParquetProperties {
   private static final int MIN_SLAB_SIZE = 64;
 
   public enum WriterVersion {
-    PARQUET_1_0 ("v1"),
-    PARQUET_2_0 ("v2");
+    PARQUET_1_0("v1"),
+    PARQUET_2_0("v2");
 
     private final String shortName;
 
@@ -111,8 +110,8 @@ public class ParquetProperties {
 
   private ParquetProperties(Builder builder) {
     this.pageSizeThreshold = builder.pageSize;
-    this.initialSlabSize = CapacityByteArrayOutputStream
-      .initialSlabSizeHeuristic(MIN_SLAB_SIZE, pageSizeThreshold, 10);
+    this.initialSlabSize =
+        CapacityByteArrayOutputStream.initialSlabSizeHeuristic(MIN_SLAB_SIZE, pageSizeThreshold, 10);
     this.dictionaryPageSizeThreshold = builder.dictPageSize;
     this.writerVersion = builder.writerVersion;
     this.dictionaryEnabled = builder.enableDict.build();
@@ -193,15 +192,14 @@ public class ParquetProperties {
   }
 
   public boolean isByteStreamSplitEnabled() {
-      return enableByteStreamSplit;
+    return enableByteStreamSplit;
   }
 
   public ByteBufferAllocator getAllocator() {
     return allocator;
   }
 
-  public ColumnWriteStore newColumnWriteStore(MessageType schema,
-                                              PageWriteStore pageStore) {
+  public ColumnWriteStore newColumnWriteStore(MessageType schema, PageWriteStore pageStore) {
     switch (writerVersion) {
       case PARQUET_1_0:
         return new ColumnWriteStoreV1(schema, pageStore, this);
@@ -212,16 +210,15 @@ public class ParquetProperties {
     }
   }
 
-  public ColumnWriteStore newColumnWriteStore(MessageType schema,
-                                              PageWriteStore pageStore,
-                                              BloomFilterWriteStore bloomFilterWriteStore) {
+  public ColumnWriteStore newColumnWriteStore(
+      MessageType schema, PageWriteStore pageStore, BloomFilterWriteStore bloomFilterWriteStore) {
     switch (writerVersion) {
-    case PARQUET_1_0:
-      return new ColumnWriteStoreV1(schema, pageStore, bloomFilterWriteStore, this);
-    case PARQUET_2_0:
-      return new ColumnWriteStoreV2(schema, pageStore, bloomFilterWriteStore, this);
-    default:
-      throw new IllegalArgumentException("unknown version " + writerVersion);
+      case PARQUET_1_0:
+        return new ColumnWriteStoreV1(schema, pageStore, bloomFilterWriteStore, this);
+      case PARQUET_2_0:
+        return new ColumnWriteStoreV2(schema, pageStore, bloomFilterWriteStore, this);
+      default:
+        throw new IllegalArgumentException("unknown version " + writerVersion);
     }
   }
 
@@ -355,8 +352,7 @@ public class ParquetProperties {
      * @return this builder for method chaining.
      */
     public Builder withPageSize(int pageSize) {
-      Preconditions.checkArgument(pageSize > 0,
-          "Invalid page size (negative): %s", pageSize);
+      Preconditions.checkArgument(pageSize > 0, "Invalid page size (negative): %s", pageSize);
       this.pageSize = pageSize;
       return this;
     }
@@ -396,8 +392,8 @@ public class ParquetProperties {
      * @return this builder for method chaining.
      */
     public Builder withDictionaryPageSize(int dictionaryPageSize) {
-      Preconditions.checkArgument(dictionaryPageSize > 0,
-          "Invalid dictionary page size (negative): %s", dictionaryPageSize);
+      Preconditions.checkArgument(
+          dictionaryPageSize > 0, "Invalid dictionary page size (negative): %s", dictionaryPageSize);
       this.dictPageSize = dictionaryPageSize;
       return this;
     }
@@ -414,15 +410,13 @@ public class ParquetProperties {
     }
 
     public Builder withMinRowCountForPageSizeCheck(int min) {
-      Preconditions.checkArgument(min > 0,
-          "Invalid row count for page size check (negative): %s", min);
+      Preconditions.checkArgument(min > 0, "Invalid row count for page size check (negative): %s", min);
       this.minRowCountForPageSizeCheck = min;
       return this;
     }
 
     public Builder withMaxRowCountForPageSizeCheck(int max) {
-      Preconditions.checkArgument(max > 0,
-          "Invalid row count for page size check (negative): %s", max);
+      Preconditions.checkArgument(max > 0, "Invalid row count for page size check (negative): %s", max);
       this.maxRowCountForPageSizeCheck = max;
       return this;
     }
@@ -444,13 +438,15 @@ public class ParquetProperties {
     }
 
     public Builder withColumnIndexTruncateLength(int length) {
-      Preconditions.checkArgument(length > 0, "Invalid column index min/max truncate length (negative or zero) : %s", length);
+      Preconditions.checkArgument(
+          length > 0, "Invalid column index min/max truncate length (negative or zero) : %s", length);
       this.columnIndexTruncateLength = length;
       return this;
     }
 
     public Builder withStatisticsTruncateLength(int length) {
-      Preconditions.checkArgument(length > 0, "Invalid statistics min/max truncate length (negative or zero) : %s", length);
+      Preconditions.checkArgument(
+          length > 0, "Invalid statistics min/max truncate length (negative or zero) : %s", length);
       this.statisticsTruncateLength = length;
       return this;
     }
@@ -540,6 +536,5 @@ public class ParquetProperties {
 
       return properties;
     }
-
   }
 }

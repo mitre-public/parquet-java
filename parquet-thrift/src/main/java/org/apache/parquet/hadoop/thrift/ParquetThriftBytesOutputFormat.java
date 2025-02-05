@@ -21,13 +21,12 @@ package org.apache.parquet.hadoop.thrift;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.thrift.TBase;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
-
 import org.apache.parquet.hadoop.ParquetOutputFormat;
 import org.apache.parquet.hadoop.util.ContextUtil;
 import org.apache.parquet.thrift.FieldIgnoredHandler;
+import org.apache.thrift.TBase;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TProtocolFactory;
 
 /**
  * Output format that turns Thrift bytes into Parquet format using the thrift TProtocol layer
@@ -38,7 +37,7 @@ public class ParquetThriftBytesOutputFormat extends ParquetOutputFormat<BytesWri
     TBaseWriteSupport.setThriftClass(ContextUtil.getConfiguration(job), thriftClass);
   }
 
-  public static Class<? extends TBase<?,?>> getThriftClass(Job job) {
+  public static Class<? extends TBase<?, ?>> getThriftClass(Job job) {
     return TBaseWriteSupport.getThriftClass(ContextUtil.getConfiguration(job));
   }
 
@@ -65,13 +64,13 @@ public class ParquetThriftBytesOutputFormat extends ParquetOutputFormat<BytesWri
    * @param buffered whether we should buffer each record
    * @param errorHandler handle record corruption and schema incompatible exception
    */
-  public ParquetThriftBytesOutputFormat(Configuration configuration,
-                                        TProtocolFactory protocolFactory,
-                                        Class<? extends TBase<?, ?>> thriftClass,
-                                        boolean buffered,
-                                        FieldIgnoredHandler errorHandler) {
-    super(new ThriftBytesWriteSupport(
-        configuration, protocolFactory, thriftClass, buffered, errorHandler));
+  public ParquetThriftBytesOutputFormat(
+      Configuration configuration,
+      TProtocolFactory protocolFactory,
+      Class<? extends TBase<?, ?>> thriftClass,
+      boolean buffered,
+      FieldIgnoredHandler errorHandler) {
+    super(new ThriftBytesWriteSupport(configuration, protocolFactory, thriftClass, buffered, errorHandler));
   }
 
   /**
@@ -86,11 +85,11 @@ public class ParquetThriftBytesOutputFormat extends ParquetOutputFormat<BytesWri
    * @param errorHandler handle record corruption and schema incompatible exception
    */
   @Deprecated
-  public ParquetThriftBytesOutputFormat(TProtocolFactory protocolFactory,
-                                        Class<? extends TBase<?, ?>> thriftClass,
-                                        boolean buffered,
-                                        FieldIgnoredHandler errorHandler) {
+  public ParquetThriftBytesOutputFormat(
+      TProtocolFactory protocolFactory,
+      Class<? extends TBase<?, ?>> thriftClass,
+      boolean buffered,
+      FieldIgnoredHandler errorHandler) {
     this(new Configuration(), protocolFactory, thriftClass, buffered, errorHandler);
   }
-
 }

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.PrimitiveIterator;
 import java.util.Set;
-
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
 import org.apache.parquet.internal.column.columnindex.OffsetIndex;
 
@@ -141,7 +140,8 @@ public class RowRanges {
     RowRanges ranges = new RowRanges();
     while (pageIndexes.hasNext()) {
       int pageIndex = pageIndexes.nextInt();
-      ranges.add(new Range(offsetIndex.getFirstRowIndex(pageIndex), offsetIndex.getLastRowIndex(pageIndex, rowCount)));
+      ranges.add(new Range(
+          offsetIndex.getFirstRowIndex(pageIndex), offsetIndex.getLastRowIndex(pageIndex, rowCount)));
     }
     return ranges;
   }
@@ -303,8 +303,9 @@ public class RowRanges {
    * @return {@code true} if the specified range is overlapping (have common elements) with one of the ranges
    */
   public boolean isOverlapping(long from, long to) {
-    return Collections.binarySearch(ranges, new Range(from, to),
-        (r1, r2) -> r1.isBefore(r2) ? -1 : r1.isAfter(r2) ? 1 : 0) >= 0;
+    return Collections.binarySearch(
+            ranges, new Range(from, to), (r1, r2) -> r1.isBefore(r2) ? -1 : r1.isAfter(r2) ? 1 : 0)
+        >= 0;
   }
 
   public List<Range> getRanges() {

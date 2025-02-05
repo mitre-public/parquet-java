@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,20 +18,19 @@
  */
 package org.apache.parquet.io;
 
+import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.*;
+
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.MessageType;
-import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
+import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.*;
 
 /**
  * Wraps a record consumer
@@ -82,7 +81,8 @@ public class ValidatingRecordConsumer extends RecordConsumer {
   @Override
   public void startField(String field, int index) {
     if (index <= previousField.peek()) {
-      throw new InvalidRecordException("fields must be added in order " + field + " index " + index + " is before previous field " + previousField.peek());
+      throw new InvalidRecordException("fields must be added in order " + field + " index " + index
+          + " is before previous field " + previousField.peek());
     }
     validateMissingFields(index);
     fields.push(index);
@@ -134,7 +134,7 @@ public class ValidatingRecordConsumer extends RecordConsumer {
    * {@inheritDoc}
    */
   @Override
-  public void flush(){
+  public void flush() {
     delegate.flush();
   }
 
@@ -142,7 +142,7 @@ public class ValidatingRecordConsumer extends RecordConsumer {
     Type currentType = types.peek().asGroupType().getType(fields.peek());
     int c = fieldValueCount.pop() + 1;
     fieldValueCount.push(c);
-    LOG.debug("validate {} for {}",p ,currentType.getName());
+    LOG.debug("validate {} for {}", p, currentType.getName());
     switch (currentType.getRepetition()) {
       case OPTIONAL:
       case REQUIRED:
@@ -153,10 +153,11 @@ public class ValidatingRecordConsumer extends RecordConsumer {
       case REPEATED:
         break;
       default:
-        throw new InvalidRecordException("unknown repetition " + currentType.getRepetition() + " in " + currentType);
+        throw new InvalidRecordException(
+            "unknown repetition " + currentType.getRepetition() + " in " + currentType);
     }
     if (!currentType.isPrimitive() || currentType.asPrimitiveType().getPrimitiveTypeName() != p) {
-      throw new InvalidRecordException("expected type " + p + " but got "+ currentType);
+      throw new InvalidRecordException("expected type " + p + " but got " + currentType);
     }
   }
 
@@ -175,19 +176,18 @@ public class ValidatingRecordConsumer extends RecordConsumer {
       case REPEATED:
         break;
       default:
-        throw new InvalidRecordException("unknown repetition " + currentType.getRepetition() + " in " + currentType);
+        throw new InvalidRecordException(
+            "unknown repetition " + currentType.getRepetition() + " in " + currentType);
     }
     if (!currentType.isPrimitive()) {
-      throw new InvalidRecordException(
-          "expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
+      throw new InvalidRecordException("expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
     }
     for (PrimitiveTypeName p : ptypes) {
       if (currentType.asPrimitiveType().getPrimitiveTypeName() == p) {
         return; // type is valid
       }
     }
-    throw new InvalidRecordException(
-        "expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
+    throw new InvalidRecordException("expected type in " + Arrays.toString(ptypes) + " but got " + currentType);
   }
 
   /**
@@ -243,5 +243,4 @@ public class ValidatingRecordConsumer extends RecordConsumer {
     validate(DOUBLE);
     delegate.addDouble(value);
   }
-
 }

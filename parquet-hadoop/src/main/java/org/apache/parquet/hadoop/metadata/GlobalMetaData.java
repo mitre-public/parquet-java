@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import org.apache.parquet.schema.MessageType;
 
 /**
@@ -50,8 +49,8 @@ public class GlobalMetaData implements Serializable {
   public GlobalMetaData(MessageType schema, Map<String, Set<String>> keyValueMetaData, Set<String> createdBy) {
     super();
     this.schema = Objects.requireNonNull(schema, "schema cannot be null");
-    this.keyValueMetaData = unmodifiableMap(Objects
-        .requireNonNull(keyValueMetaData, "keyValueMetaData cannot be null"));
+    this.keyValueMetaData =
+        unmodifiableMap(Objects.requireNonNull(keyValueMetaData, "keyValueMetaData cannot be null"));
     this.createdBy = createdBy;
   }
 
@@ -64,7 +63,7 @@ public class GlobalMetaData implements Serializable {
 
   @Override
   public String toString() {
-    return "GlobalMetaData{schema: "+schema+ ", metadata: " + keyValueMetaData + "}";
+    return "GlobalMetaData{schema: " + schema + ", metadata: " + keyValueMetaData + "}";
   }
 
   /**
@@ -85,13 +84,13 @@ public class GlobalMetaData implements Serializable {
    * Will merge the metadata as if it was coming from a single file.
    * (for all part files written together this will always work)
    * If there are conflicting values an exception will be thrown
-   * 
+   *
    * Provided for backward compatibility
    * @return the merged version of this
    */
   public FileMetaData merge() {
-     return merge(new StrictKeyValueMetadataMergeStrategy());
-   }
+    return merge(new StrictKeyValueMetadataMergeStrategy());
+  }
 
   /**
    * Will merge the metadata as if it was coming from a single file.
@@ -100,11 +99,8 @@ public class GlobalMetaData implements Serializable {
    * @return the merged version of this
    */
   public FileMetaData merge(KeyValueMetadataMergeStrategy keyValueMetadataMergeStrategy) {
-    String createdByString = createdBy.size() == 1 ?
-      createdBy.iterator().next() :
-      createdBy.toString();
+    String createdByString = createdBy.size() == 1 ? createdBy.iterator().next() : createdBy.toString();
     Map<String, String> mergedKeyValues = keyValueMetadataMergeStrategy.merge(keyValueMetaData);
     return new FileMetaData(schema, mergedKeyValues, createdByString);
   }
-
 }

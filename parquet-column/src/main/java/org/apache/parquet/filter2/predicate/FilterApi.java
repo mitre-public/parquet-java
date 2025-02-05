@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,8 +20,6 @@ package org.apache.parquet.filter2.predicate;
 
 import java.io.Serializable;
 import java.util.Set;
-
-import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.apache.parquet.filter2.predicate.Operators.And;
 import org.apache.parquet.filter2.predicate.Operators.BinaryColumn;
 import org.apache.parquet.filter2.predicate.Operators.BooleanColumn;
@@ -45,6 +43,7 @@ import org.apache.parquet.filter2.predicate.Operators.SupportsLtGt;
 import org.apache.parquet.filter2.predicate.Operators.UserDefined;
 import org.apache.parquet.filter2.predicate.Operators.UserDefinedByClass;
 import org.apache.parquet.filter2.predicate.Operators.UserDefinedByInstance;
+import org.apache.parquet.hadoop.metadata.ColumnPath;
 
 /**
  * The Filter API is expressed through these static methods.
@@ -66,7 +65,7 @@ import org.apache.parquet.filter2.predicate.Operators.UserDefinedByInstance;
 // TODO: Consider adding support for more column types that aren't coupled with parquet types, eg Column<String>
 // TODO: (https://issues.apache.org/jira/browse/PARQUET-35)
 public final class FilterApi {
-  private FilterApi() { }
+  private FilterApi() {}
 
   public static IntColumn intColumn(String columnPath) {
     return new IntColumn(ColumnPath.fromDotString(columnPath));
@@ -253,7 +252,8 @@ public final class FilterApi {
    * @param <C> the column type that corresponds to values of type T
    * @return an notIn predicate for the given column and value
    */
-  public static <T extends Comparable<T>, C extends Column<T> & SupportsEqNotEq> NotIn<T> notIn(C column, Set<T> values) {
+  public static <T extends Comparable<T>, C extends Column<T> & SupportsEqNotEq> NotIn<T> notIn(
+      C column, Set<T> values) {
     return new NotIn<>(column, values);
   }
 
@@ -269,11 +269,11 @@ public final class FilterApi {
    * @param <U> a user-defined predicate for values of type T
    * @return a user-defined predicate for the given column
    */
-  public static <T extends Comparable<T>, U extends UserDefinedPredicate<T>>
-    UserDefined<T, U> userDefined(Column<T> column, Class<U> clazz) {
+  public static <T extends Comparable<T>, U extends UserDefinedPredicate<T>> UserDefined<T, U> userDefined(
+      Column<T> column, Class<U> clazz) {
     return new UserDefinedByClass<>(column, clazz);
   }
-  
+
   /**
    * Keeps records that pass the provided {@link UserDefinedPredicate}
    * <p>
@@ -286,7 +286,7 @@ public final class FilterApi {
    * @return a user-defined predicate for the given column
    */
   public static <T extends Comparable<T>, U extends UserDefinedPredicate<T> & Serializable>
-    UserDefined<T, U> userDefined(Column<T> column, U udp) {
+      UserDefined<T, U> userDefined(Column<T> column, U udp) {
     return new UserDefinedByInstance<>(column, udp);
   }
 
@@ -324,5 +324,4 @@ public final class FilterApi {
   public static FilterPredicate not(FilterPredicate predicate) {
     return new Not(predicate);
   }
-
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,11 +18,10 @@
  */
 package org.apache.parquet.hadoop;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A basic implementation of an LRU cache.  Besides evicting the least recently
@@ -60,20 +59,18 @@ final class LruCache<K, V extends LruCache.Value<K, V>> {
    */
   public LruCache(final int maxSize, final float loadFactor, final boolean accessOrder) {
     int initialCapacity = Math.round(maxSize / loadFactor);
-    cacheMap =
-            new LinkedHashMap<K, V>(initialCapacity, loadFactor, accessOrder) {
-              @Override
-              public boolean removeEldestEntry(final Map.Entry<K, V> eldest) {
-                boolean result = size() > maxSize;
-                if (result) {
-                  if (LOG.isDebugEnabled()) {
-                    LOG.debug("Removing eldest entry in cache: "
-                            + eldest.getKey());
-                  }
-                }
-                return result;
-              }
-            };
+    cacheMap = new LinkedHashMap<K, V>(initialCapacity, loadFactor, accessOrder) {
+      @Override
+      public boolean removeEldestEntry(final Map.Entry<K, V> eldest) {
+        boolean result = size() > maxSize;
+        if (result) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Removing eldest entry in cache: " + eldest.getKey());
+          }
+        }
+        return result;
+      }
+    };
   }
 
   /**
@@ -101,8 +98,10 @@ final class LruCache<K, V extends LruCache.Value<K, V>> {
   public void put(final K key, final V newValue) {
     if (newValue == null || !newValue.isCurrent(key)) {
       if (LOG.isWarnEnabled()) {
-        LOG.warn("Ignoring new cache entry for '{}' because it is {}", key,
-                (newValue == null ? "null" : "not current"));
+        LOG.warn(
+            "Ignoring new cache entry for '{}' because it is {}",
+            key,
+            (newValue == null ? "null" : "not current"));
       }
       return;
     }
@@ -110,8 +109,7 @@ final class LruCache<K, V extends LruCache.Value<K, V>> {
     V oldValue = cacheMap.get(key);
     if (oldValue != null && oldValue.isNewerThan(newValue)) {
       if (LOG.isWarnEnabled()) {
-        LOG.warn("Ignoring new cache entry for '{}' because "
-                + "existing cache entry is newer", key);
+        LOG.warn("Ignoring new cache entry for '{}' because " + "existing cache entry is newer", key);
       }
       return;
     }
@@ -191,5 +189,4 @@ final class LruCache<K, V extends LruCache.Value<K, V>> {
      */
     boolean isNewerThan(V otherValue);
   }
-
 }

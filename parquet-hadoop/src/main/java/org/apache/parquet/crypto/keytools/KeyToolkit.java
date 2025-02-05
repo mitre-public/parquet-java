@@ -19,6 +19,10 @@
 
 package org.apache.parquet.crypto.keytools;
 
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -32,12 +36,6 @@ import org.apache.parquet.crypto.ParquetCryptoRuntimeException;
 import org.apache.parquet.hadoop.BadConfigurationException;
 import org.apache.parquet.hadoop.util.ConfigurationUtil;
 import org.apache.parquet.hadoop.util.HiddenFileFilter;
-
-import java.io.IOException;
-
-import java.util.Base64;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 public class KeyToolkit {
 
@@ -98,21 +96,18 @@ public class KeyToolkit {
   private static final int CACHE_CLEAN_PERIOD_FOR_KEY_ROTATION = 60 * 60 * 1000; // 1 hour
 
   // KMS client two level cache: token -> KMSInstanceId -> KmsClient
-  static final TwoLevelCacheWithExpiration<KmsClient> KMS_CLIENT_CACHE_PER_TOKEN =
-     KmsClientCache.INSTANCE.getCache();
+  static final TwoLevelCacheWithExpiration<KmsClient> KMS_CLIENT_CACHE_PER_TOKEN = KmsClientCache.INSTANCE.getCache();
 
   // KEK two level cache for wrapping: token -> MEK_ID -> KeyEncryptionKey
   static final TwoLevelCacheWithExpiration<KeyEncryptionKey> KEK_WRITE_CACHE_PER_TOKEN =
       KEKWriteCache.INSTANCE.getCache();
 
   // KEK two level cache for unwrapping: token -> KEK_ID -> KEK bytes
-  static final TwoLevelCacheWithExpiration<byte[]> KEK_READ_CACHE_PER_TOKEN =
-      KEKReadCache.INSTANCE.getCache();
+  static final TwoLevelCacheWithExpiration<byte[]> KEK_READ_CACHE_PER_TOKEN = KEKReadCache.INSTANCE.getCache();
 
   private enum KmsClientCache {
     INSTANCE;
-    private final TwoLevelCacheWithExpiration<KmsClient> cache =
-      new TwoLevelCacheWithExpiration<>();
+    private final TwoLevelCacheWithExpiration<KmsClient> cache = new TwoLevelCacheWithExpiration<>();
 
     private TwoLevelCacheWithExpiration<KmsClient> getCache() {
       return cache;
@@ -121,8 +116,7 @@ public class KeyToolkit {
 
   private enum KEKWriteCache {
     INSTANCE;
-    private final TwoLevelCacheWithExpiration<KeyEncryptionKey> cache =
-      new TwoLevelCacheWithExpiration<>();
+    private final TwoLevelCacheWithExpiration<KeyEncryptionKey> cache = new TwoLevelCacheWithExpiration<>();
 
     private TwoLevelCacheWithExpiration<KeyEncryptionKey> getCache() {
       return cache;
@@ -131,8 +125,7 @@ public class KeyToolkit {
 
   private enum KEKReadCache {
     INSTANCE;
-    private final TwoLevelCacheWithExpiration<byte[]> cache =
-      new TwoLevelCacheWithExpiration<>();
+    private final TwoLevelCacheWithExpiration<byte[]> cache = new TwoLevelCacheWithExpiration<>();
 
     private TwoLevelCacheWithExpiration<byte[]> getCache() {
       return cache;
@@ -141,7 +134,7 @@ public class KeyToolkit {
 
   static class KeyWithMasterID {
     private final byte[] keyBytes;
-    private final String masterID ;
+    private final String masterID;
 
     KeyWithMasterID(byte[] keyBytes, String masterID) {
       this.keyBytes = keyBytes;
@@ -160,7 +153,7 @@ public class KeyToolkit {
   static class KeyEncryptionKey {
     private final byte[] kekBytes;
     private final byte[] kekID;
-    private  String encodedKekID;
+    private String encodedKekID;
     private final String encodedWrappedKEK;
 
     KeyEncryptionKey(byte[] kekBytes, byte[] kekID, String encodedWrappedKEK) {
@@ -204,7 +197,7 @@ public class KeyToolkit {
    * @throws UnsupportedOperationException Master key rotation not supported in the specific configuration
    */
   public static void rotateMasterKeys(String folderPath, Configuration hadoopConfig)
-    throws IOException, ParquetCryptoRuntimeException, KeyAccessDeniedException, UnsupportedOperationException {
+      throws IOException, ParquetCryptoRuntimeException, KeyAccessDeniedException, UnsupportedOperationException {
 
     if (hadoopConfig.getBoolean(KEY_MATERIAL_INTERNAL_PROPERTY_NAME, false)) {
       throw new UnsupportedOperationException("Key rotation is not supported for internal key material");
@@ -224,7 +217,8 @@ public class KeyToolkit {
 
     FileSystem hadoopFileSystem = parentPath.getFileSystem(hadoopConfig);
     if (!hadoopFileSystem.exists(parentPath) || !hadoopFileSystem.isDirectory(parentPath)) {
-      throw new ParquetCryptoRuntimeException("Couldn't rotate keys - folder doesn't exist or is not a directory: " + folderPath);
+      throw new ParquetCryptoRuntimeException(
+          "Couldn't rotate keys - folder doesn't exist or is not a directory: " + folderPath);
     }
 
     FileStatus[] parquetFilesInFolder = hadoopFileSystem.listStatus(parentPath, HiddenFileFilter.INSTANCE);
@@ -250,8 +244,8 @@ public class KeyToolkit {
       KmsClientAndDetails kmsClientAndDetails = fileKeyUnwrapper.getKmsClientAndDetails();
 
       FileKeyWrapper fileKeyWrapper = new FileKeyWrapper(hadoopConfig, tempKeyMaterialStore, kmsClientAndDetails);
-      fileKeyWrapper.getEncryptionKeyMetadata(key.getDataKey(), key.getMasterID(), true,
-        KeyMaterial.FOOTER_KEY_ID_IN_FILE);
+      fileKeyWrapper.getEncryptionKeyMetadata(
+          key.getDataKey(), key.getMasterID(), true, KeyMaterial.FOOTER_KEY_ID_IN_FILE);
 
       fileKeyIdSet.remove(KeyMaterial.FOOTER_KEY_ID_IN_FILE);
       // Rotate column keys
@@ -319,36 +313,39 @@ public class KeyToolkit {
     return keyDecryptor.decrypt(encryptedKey, 0, encryptedKey.length, AAD);
   }
 
-  static KmsClient getKmsClient(String kmsInstanceID, String kmsInstanceURL, Configuration configuration,
-      String accessToken, long cacheEntryLifetime) {
+  static KmsClient getKmsClient(
+      String kmsInstanceID,
+      String kmsInstanceURL,
+      Configuration configuration,
+      String accessToken,
+      long cacheEntryLifetime) {
 
     ConcurrentMap<String, KmsClient> kmsClientPerKmsInstanceCache =
         KMS_CLIENT_CACHE_PER_TOKEN.getOrCreateInternalCache(accessToken, cacheEntryLifetime);
 
-    KmsClient kmsClient =
-        kmsClientPerKmsInstanceCache.computeIfAbsent(kmsInstanceID,
-            (k) -> createAndInitKmsClient(configuration, kmsInstanceID, kmsInstanceURL, accessToken));
+    KmsClient kmsClient = kmsClientPerKmsInstanceCache.computeIfAbsent(
+        kmsInstanceID,
+        (k) -> createAndInitKmsClient(configuration, kmsInstanceID, kmsInstanceURL, accessToken));
 
     return kmsClient;
   }
 
-  private static KmsClient createAndInitKmsClient(Configuration configuration, String kmsInstanceID,
-      String kmsInstanceURL, String accessToken) {
+  private static KmsClient createAndInitKmsClient(
+      Configuration configuration, String kmsInstanceID, String kmsInstanceURL, String accessToken) {
 
     Class<?> kmsClientClass = null;
     KmsClient kmsClient = null;
 
     try {
-      kmsClientClass = ConfigurationUtil.getClassFromConfig(configuration,
-          KMS_CLIENT_CLASS_PROPERTY_NAME, KmsClient.class);
+      kmsClientClass = ConfigurationUtil.getClassFromConfig(
+          configuration, KMS_CLIENT_CLASS_PROPERTY_NAME, KmsClient.class);
 
       if (null == kmsClientClass) {
         throw new ParquetCryptoRuntimeException("Unspecified " + KMS_CLIENT_CLASS_PROPERTY_NAME);
       }
-      kmsClient = (KmsClient)kmsClientClass.newInstance();
+      kmsClient = (KmsClient) kmsClientClass.newInstance();
     } catch (InstantiationException | IllegalAccessException | BadConfigurationException e) {
-      throw new ParquetCryptoRuntimeException("Could not instantiate KmsClient class: "
-          + kmsClientClass, e);
+      throw new ParquetCryptoRuntimeException("Could not instantiate KmsClient class: " + kmsClientClass, e);
     }
 
     kmsClient.initialize(configuration, kmsInstanceID, kmsInstanceURL, accessToken);

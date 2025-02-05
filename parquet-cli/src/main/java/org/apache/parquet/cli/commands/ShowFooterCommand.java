@@ -23,13 +23,19 @@ import static org.apache.parquet.bytes.BytesUtils.readIntLittleEndian;
 import static org.apache.parquet.hadoop.ParquetFileWriter.EFMAGIC;
 import static org.apache.parquet.hadoop.ParquetFileWriter.MAGIC;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.cli.BaseCommand;
 import org.apache.parquet.format.CliUtils;
@@ -41,14 +47,6 @@ import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 import org.slf4j.Logger;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 @Parameters(commandDescription = "Print the Parquet file footer in json format")
 public class ShowFooterCommand extends BaseCommand {
 
@@ -59,7 +57,9 @@ public class ShowFooterCommand extends BaseCommand {
   @Parameter(description = "<parquet path>", required = true)
   String target;
 
-  @Parameter(names = { "-r", "--raw" }, description = "Print the raw thrift object of the footer")
+  @Parameter(
+      names = {"-r", "--raw"},
+      description = "Print the raw thrift object of the footer")
   boolean raw = false;
 
   @Override
@@ -116,7 +116,8 @@ public class ShowFooterCommand extends BaseCommand {
 
       long fileMetadataIndex = fileMetadataLengthIndex - fileMetadataLength;
       if (fileMetadataIndex < magic.length || fileMetadataIndex >= fileMetadataLengthIndex) {
-        throw new RuntimeException("Corrupted file: the footer index is not within the file: " + fileMetadataIndex);
+        throw new RuntimeException(
+            "Corrupted file: the footer index is not within the file: " + fileMetadataIndex);
       }
       f.seek(fileMetadataIndex);
 
@@ -142,5 +143,4 @@ public class ShowFooterCommand extends BaseCommand {
         "# Print the raw thrift footer object of the specified Parquet file in json format",
         "sample.parquet --raw");
   }
-
 }

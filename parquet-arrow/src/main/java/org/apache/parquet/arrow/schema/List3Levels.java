@@ -46,7 +46,9 @@ class List3Levels {
     }
     this.list = list;
     Type repeatedField = list.getFields().get(0);
-    if (repeatedField.isPrimitive() || !repeatedField.isRepetition(REPEATED) || repeatedField.asGroupType().getFields().size() != 1) {
+    if (repeatedField.isPrimitive()
+        || !repeatedField.isRepetition(REPEATED)
+        || repeatedField.asGroupType().getFields().size() != 1) {
       throw new IllegalArgumentException("invalid list type: " + list);
     }
     this.repeated = repeatedField.asGroupType();
@@ -73,5 +75,4 @@ class List3Levels {
   public Type getElement() {
     return element;
   }
-
 }

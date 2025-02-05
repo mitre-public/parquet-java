@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,11 +20,9 @@ package org.apache.parquet.hadoop.api;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
-
+import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.parquet.schema.MessageType;
 
 /**
@@ -33,8 +31,8 @@ import org.apache.parquet.schema.MessageType;
  */
 public class InitContext {
 
-  private final Map<String,Set<String>> keyValueMetadata;
-  private Map<String,String> mergedKeyValueMetadata;
+  private final Map<String, Set<String>> keyValueMetadata;
+  private Map<String, String> mergedKeyValueMetadata;
   private final Configuration configuration;
   private final MessageType fileSchema;
 
@@ -43,10 +41,7 @@ public class InitContext {
    * @param keyValueMetadata extra metadata from file footers
    * @param fileSchema the merged schema from the files
    */
-  public InitContext(
-      Configuration configuration,
-      Map<String, Set<String>> keyValueMetadata,
-      MessageType fileSchema) {
+  public InitContext(Configuration configuration, Map<String, Set<String>> keyValueMetadata, MessageType fileSchema) {
     super();
     this.keyValueMetadata = keyValueMetadata;
     this.configuration = configuration;
@@ -64,7 +59,8 @@ public class InitContext {
       Map<String, String> mergedKeyValues = new HashMap<String, String>();
       for (Entry<String, Set<String>> entry : keyValueMetadata.entrySet()) {
         if (entry.getValue().size() > 1) {
-          throw new RuntimeException("could not merge metadata: key " + entry.getKey() + " has conflicting values: " + entry.getValue());
+          throw new RuntimeException("could not merge metadata: key " + entry.getKey()
+              + " has conflicting values: " + entry.getValue());
         }
         mergedKeyValues.put(entry.getKey(), entry.getValue().iterator().next());
       }
@@ -95,5 +91,4 @@ public class InitContext {
   public Map<String, Set<String>> getKeyValueMetadata() {
     return keyValueMetadata;
   }
-
 }

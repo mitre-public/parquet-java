@@ -19,6 +19,16 @@
 
 package org.apache.parquet;
 
+import static org.apache.parquet.hadoop.ParquetInputFormat.BLOOM_FILTERING_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.COLUMN_INDEX_FILTERING_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.DICTIONARY_FILTERING_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.PAGE_VERIFY_CHECKSUM_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.RECORD_FILTERING_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.STATS_FILTERING_ENABLED;
+import static org.apache.parquet.hadoop.ParquetInputFormat.getFilter;
+import static org.apache.parquet.hadoop.UnmaterializableRecordCounter.BAD_RECORD_THRESHOLD_CONF_KEY;
+
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.bytes.ByteBufferAllocator;
@@ -29,42 +39,42 @@ import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.format.converter.ParquetMetadataConverter.MetadataFilter;
 import org.apache.parquet.hadoop.util.HadoopCodecs;
 
-import java.util.Map;
-
-import static org.apache.parquet.hadoop.ParquetInputFormat.COLUMN_INDEX_FILTERING_ENABLED;
-import static org.apache.parquet.hadoop.ParquetInputFormat.DICTIONARY_FILTERING_ENABLED;
-import static org.apache.parquet.hadoop.ParquetInputFormat.BLOOM_FILTERING_ENABLED;
-import static org.apache.parquet.hadoop.ParquetInputFormat.getFilter;
-import static org.apache.parquet.hadoop.ParquetInputFormat.PAGE_VERIFY_CHECKSUM_ENABLED;
-import static org.apache.parquet.hadoop.ParquetInputFormat.RECORD_FILTERING_ENABLED;
-import static org.apache.parquet.hadoop.ParquetInputFormat.STATS_FILTERING_ENABLED;
-import static org.apache.parquet.hadoop.UnmaterializableRecordCounter.BAD_RECORD_THRESHOLD_CONF_KEY;
-
 public class HadoopReadOptions extends ParquetReadOptions {
   private final Configuration conf;
 
   private static final String ALLOCATION_SIZE = "parquet.read.allocation.size";
 
-  private HadoopReadOptions(boolean useSignedStringMinMax,
-                            boolean useStatsFilter,
-                            boolean useDictionaryFilter,
-                            boolean useRecordFilter,
-                            boolean useColumnIndexFilter,
-                            boolean usePageChecksumVerification,
-                            boolean useBloomFilter,
-                            FilterCompat.Filter recordFilter,
-                            MetadataFilter metadataFilter,
-                            CompressionCodecFactory codecFactory,
-                            ByteBufferAllocator allocator,
-                            int maxAllocationSize,
-                            Map<String, String> properties,
-                            Configuration conf,
-                            FileDecryptionProperties fileDecryptionProperties) {
+  private HadoopReadOptions(
+      boolean useSignedStringMinMax,
+      boolean useStatsFilter,
+      boolean useDictionaryFilter,
+      boolean useRecordFilter,
+      boolean useColumnIndexFilter,
+      boolean usePageChecksumVerification,
+      boolean useBloomFilter,
+      FilterCompat.Filter recordFilter,
+      MetadataFilter metadataFilter,
+      CompressionCodecFactory codecFactory,
+      ByteBufferAllocator allocator,
+      int maxAllocationSize,
+      Map<String, String> properties,
+      Configuration conf,
+      FileDecryptionProperties fileDecryptionProperties) {
     super(
-        useSignedStringMinMax, useStatsFilter, useDictionaryFilter, useRecordFilter, useColumnIndexFilter,
-        usePageChecksumVerification, useBloomFilter, recordFilter, metadataFilter, codecFactory, allocator,
-        maxAllocationSize, properties, fileDecryptionProperties
-    );
+        useSignedStringMinMax,
+        useStatsFilter,
+        useDictionaryFilter,
+        useRecordFilter,
+        useColumnIndexFilter,
+        usePageChecksumVerification,
+        useBloomFilter,
+        recordFilter,
+        metadataFilter,
+        codecFactory,
+        allocator,
+        maxAllocationSize,
+        properties,
+        fileDecryptionProperties);
     this.conf = conf;
   }
 
@@ -105,8 +115,7 @@ public class HadoopReadOptions extends ParquetReadOptions {
       useStatsFilter(conf.getBoolean(STATS_FILTERING_ENABLED, true));
       useRecordFilter(conf.getBoolean(RECORD_FILTERING_ENABLED, true));
       useColumnIndexFilter(conf.getBoolean(COLUMN_INDEX_FILTERING_ENABLED, true));
-      usePageChecksumVerification(conf.getBoolean(PAGE_VERIFY_CHECKSUM_ENABLED,
-        usePageChecksumVerification));
+      usePageChecksumVerification(conf.getBoolean(PAGE_VERIFY_CHECKSUM_ENABLED, usePageChecksumVerification));
       useBloomFilter(conf.getBoolean(BLOOM_FILTERING_ENABLED, true));
       withCodecFactory(HadoopCodecs.newFactory(conf, 0));
       withRecordFilter(getFilter(conf));
@@ -120,13 +129,25 @@ public class HadoopReadOptions extends ParquetReadOptions {
     @Override
     public ParquetReadOptions build() {
       if (null == fileDecryptionProperties) {
-        // if not set, check if Hadoop conf defines decryption factory and properties 
+        // if not set, check if Hadoop conf defines decryption factory and properties
         fileDecryptionProperties = createDecryptionProperties(filePath, conf);
       }
       return new HadoopReadOptions(
-        useSignedStringMinMax, useStatsFilter, useDictionaryFilter, useRecordFilter,
-        useColumnIndexFilter, usePageChecksumVerification, useBloomFilter, recordFilter, metadataFilter,
-        codecFactory, allocator, maxAllocationSize, properties, conf, fileDecryptionProperties);
+          useSignedStringMinMax,
+          useStatsFilter,
+          useDictionaryFilter,
+          useRecordFilter,
+          useColumnIndexFilter,
+          usePageChecksumVerification,
+          useBloomFilter,
+          recordFilter,
+          metadataFilter,
+          codecFactory,
+          allocator,
+          maxAllocationSize,
+          properties,
+          conf,
+          fileDecryptionProperties);
     }
   }
 

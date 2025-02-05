@@ -1,4 +1,4 @@
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -144,8 +144,8 @@ public class LittleEndianDataOutputStream extends OutputStream {
     // TODO: see note in LittleEndianDataInputStream: maybe faster
     // to use Integer.reverseBytes() and then writeInt, or a ByteBuffer
     // approach
-    out.write((v >>>  0) & 0xFF);
-    out.write((v >>>  8) & 0xFF);
+    out.write((v >>> 0) & 0xFF);
+    out.write((v >>> 8) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>> 24) & 0xFF);
   }
@@ -162,14 +162,14 @@ public class LittleEndianDataOutputStream extends OutputStream {
    * @see        java.io.FilterOutputStream#out
    */
   public final void writeLong(long v) throws IOException {
-    writeBuffer[7] = (byte)(v >>> 56);
-    writeBuffer[6] = (byte)(v >>> 48);
-    writeBuffer[5] = (byte)(v >>> 40);
-    writeBuffer[4] = (byte)(v >>> 32);
-    writeBuffer[3] = (byte)(v >>> 24);
-    writeBuffer[2] = (byte)(v >>> 16);
-    writeBuffer[1] = (byte)(v >>>  8);
-    writeBuffer[0] = (byte)(v >>>  0);
+    writeBuffer[7] = (byte) (v >>> 56);
+    writeBuffer[6] = (byte) (v >>> 48);
+    writeBuffer[5] = (byte) (v >>> 40);
+    writeBuffer[4] = (byte) (v >>> 32);
+    writeBuffer[3] = (byte) (v >>> 24);
+    writeBuffer[2] = (byte) (v >>> 16);
+    writeBuffer[1] = (byte) (v >>> 8);
+    writeBuffer[0] = (byte) (v >>> 0);
     out.write(writeBuffer, 0, 8);
   }
 
@@ -214,5 +214,4 @@ public class LittleEndianDataOutputStream extends OutputStream {
       // swallow exception
     }
   }
-
 }

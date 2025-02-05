@@ -19,15 +19,14 @@
 
 package org.apache.parquet.crypto;
 
+import static org.apache.parquet.crypto.AesCipher.AAD_FILE_UNIQUE_LENGTH;
+
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.parquet.format.EncryptionAlgorithm;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
-
-import static org.apache.parquet.crypto.AesCipher.AAD_FILE_UNIQUE_LENGTH;
 
 public class FileEncryptionProperties {
 
@@ -41,15 +40,19 @@ public class FileEncryptionProperties {
   private final byte[] fileAAD;
   private final Map<ColumnPath, ColumnEncryptionProperties> columnPropertyMap;
 
-  private FileEncryptionProperties(ParquetCipher cipher, 
-      byte[] footerKey, byte[] footerKeyMetadata, boolean encryptedFooter,
-      byte[] aadPrefix, boolean storeAadPrefixInFile,
+  private FileEncryptionProperties(
+      ParquetCipher cipher,
+      byte[] footerKey,
+      byte[] footerKeyMetadata,
+      boolean encryptedFooter,
+      byte[] aadPrefix,
+      boolean storeAadPrefixInFile,
       Map<ColumnPath, ColumnEncryptionProperties> columnPropertyMap) {
 
     if (null == footerKey) {
       throw new IllegalArgumentException("Footer key is null");
     }
-    if (! (footerKey.length == 16 || footerKey.length == 24 || footerKey.length == 32)) {
+    if (!(footerKey.length == 16 || footerKey.length == 24 || footerKey.length == 32)) {
       throw new IllegalArgumentException("Wrong footer key length " + footerKey.length);
     }
     if (null != columnPropertyMap && columnPropertyMap.size() == 0) {
@@ -91,8 +94,8 @@ public class FileEncryptionProperties {
   }
 
   /**
-   * 
-   * @param footerKey Encryption key for file footer and some (or all) columns. 
+   *
+   * @param footerKey Encryption key for file footer and some (or all) columns.
    * Key length must be either 16, 24 or 32 bytes.
    * If null, footer won't be encrypted. At least one column must be encrypted then.
    * @return Builder
@@ -120,7 +123,7 @@ public class FileEncryptionProperties {
     /**
      * Create files with plaintext footer.
      * If not called, the files will be created with encrypted footer (default).
-     * 
+     *
      * @return Builder
      */
     public Builder withPlaintextFooter() {
@@ -131,7 +134,7 @@ public class FileEncryptionProperties {
     /**
      * Set encryption algorithm.
      * If not called, files will be encrypted with AES_GCM_V1 (default).
-     * 
+     *
      * @param parquetCipher Encryption algorithm
      * @return Builder
      */
@@ -143,7 +146,7 @@ public class FileEncryptionProperties {
     /**
      * Set a key retrieval metadata (converted from String).
      * Use either withFooterKeyMetaData or withFooterKeyID, not both.
-     * 
+     *
      * @param keyID will be converted to metadata (UTF-8 array).
      * @return Builder
      */
@@ -158,7 +161,7 @@ public class FileEncryptionProperties {
     /**
      * Set a key retrieval metadata.
      * Use either withFooterKeyMetaData or withFooterKeyID, not both.
-     * 
+     *
      * @param footerKeyMetadata Key metadata
      * @return Builder
      */
@@ -176,7 +179,7 @@ public class FileEncryptionProperties {
 
     /**
      * Set the file AAD Prefix.
-     * 
+     *
      * @param aadPrefixBytes AAD Prefix
      * @return Builder
      */
@@ -196,7 +199,7 @@ public class FileEncryptionProperties {
     /**
      * Skip storing AAD Prefix in file metadata.
      * If not called, and if AAD Prefix is set, it will be stored.
-     * 
+     *
      * @return Builder
      */
     public Builder withoutAADPrefixStorage() {
@@ -210,13 +213,13 @@ public class FileEncryptionProperties {
 
     /**
      * Set the list of encrypted columns and their properties (keys etc).
-     * If not called, all columns will be encrypted with the footer key. 
+     * If not called, all columns will be encrypted with the footer key.
      * If called, the file columns not in the list will be left unencrypted.
-     * 
+     *
      * @param encryptedColumns Columns to be encrypted
      * @return Builder
      */
-    public Builder withEncryptedColumns(Map<ColumnPath, ColumnEncryptionProperties> encryptedColumns)  {
+    public Builder withEncryptedColumns(Map<ColumnPath, ColumnEncryptionProperties> encryptedColumns) {
       if (null == encryptedColumns) {
         return this;
       }
@@ -230,9 +233,13 @@ public class FileEncryptionProperties {
     }
 
     public FileEncryptionProperties build() {
-      return new FileEncryptionProperties(parquetCipher, 
-          footerKeyBytes, footerKeyMetadata, encryptedFooter,
-          aadPrefix, storeAadPrefixInFile, 
+      return new FileEncryptionProperties(
+          parquetCipher,
+          footerKeyBytes,
+          footerKeyMetadata,
+          encryptedFooter,
+          aadPrefix,
+          storeAadPrefixInFile,
           columnPropertyMap);
     }
   }

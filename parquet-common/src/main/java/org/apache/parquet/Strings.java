@@ -23,12 +23,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
 import org.apache.parquet.glob.GlobExpander;
 import org.apache.parquet.glob.WildcardPath;
 
 public final class Strings {
-  private Strings() { }
+  private Strings() {}
 
   /**
    * Join an Iterable of Strings into a single string with a delimiter.

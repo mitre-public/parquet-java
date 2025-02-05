@@ -104,5 +104,4 @@ public abstract class SeekableInputStream extends InputStream {
    *                      fill the buffer, {@code buf.remaining()}
    */
   public abstract void readFully(ByteBuffer buf) throws IOException;
-
 }

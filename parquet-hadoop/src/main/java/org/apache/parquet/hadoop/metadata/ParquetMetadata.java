@@ -18,17 +18,12 @@
  */
 package org.apache.parquet.hadoop.metadata;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 
 /**
  * Meta Data block stored in the footer of the file
@@ -67,8 +62,9 @@ public class ParquetMetadata {
     try {
       if (isPrettyPrint) {
         Object objectToPrint;
-        if (parquetMetaData.getFileMetaData() == null ||
-            parquetMetaData.getFileMetaData().getEncryptionType() == FileMetaData.EncryptionType.UNENCRYPTED) {
+        if (parquetMetaData.getFileMetaData() == null
+            || parquetMetaData.getFileMetaData().getEncryptionType()
+                == FileMetaData.EncryptionType.UNENCRYPTED) {
           objectToPrint = parquetMetaData;
         } else {
           objectToPrint = parquetMetaData.getFileMetaData();
@@ -125,10 +121,8 @@ public class ParquetMetadata {
     return fileMetaData;
   }
 
-
   @Override
   public String toString() {
-    return "ParquetMetaData{"+fileMetaData+", blocks: "+blocks+"}";
+    return "ParquetMetaData{" + fileMetaData + ", blocks: " + blocks + "}";
   }
-
 }

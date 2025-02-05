@@ -34,6 +34,6 @@ public interface FieldConsumer {
    * @param type the type of the field
    * @throws TException if any thrift related error occurs during the reading
    */
-  public void consumeField(TProtocol protocol, EventBasedThriftReader eventBasedThriftReader, short id, byte type) throws TException;
-
+  public void consumeField(TProtocol protocol, EventBasedThriftReader eventBasedThriftReader, short id, byte type)
+      throws TException;
 }
